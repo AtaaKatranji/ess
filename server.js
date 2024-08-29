@@ -20,13 +20,13 @@ app.use('/checks', checksRoutes);
 app.use('/todolist', todo);
 
 //const hostname = '192.168.1.109'; // for Home's wifi
-const hostname = '192.168.1.103'; // for wifi
+const hostname = '192.168.1.111'; // for Home's wifi
 //const hostname = '192.168.48.138'; // for hotspot my mobile
 
-const port = 9000;
+const port = process.env.PORT || 9000;
 
-app.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+app.listen(port,hostname, () => {
+  console.log(`Server running at ${port}/`);
 });
 
 app.get("/",(req, res)=>{
