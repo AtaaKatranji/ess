@@ -1,13 +1,23 @@
 const express = require("express");
-const moment = require('moment');
+const moment = require('moment-timezone'); 
 const router = express.Router();
 const { CheckInOut } = require("../models/schmeaESS");
 const mongoose = require('mongoose');
 const UserModel = require("../models/user.model");
 const { ObjectId } = require('mongodb');
 
+const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+// Include this in your request body
+// const response = await fetch('/api/start-work', {
+//     method: 'POST',
+//     headers: {
+//         'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({ userId, timeZone: userTimeZone }),
+// });
 //get month number 
-const  getMonthNumber = (month) => {
+const  getMonthNumber = (month) => { 
   const monthMap = {
     "January": 1,
     "February": 2,
@@ -78,16 +88,17 @@ const startWork = async (employeeIdStr) => {
   };
   
   // Stop Work
-  const stopWork = async (employeeId) => {
+  const stopWork = async (employeeId, time, date) => {
     try {
       
       
-      const { time, date } = getCurrentTime();
+      //const { time, date } = getCurrentTime();
 
       check = await CheckInOut.findOneAndUpdate(
         { employee: employeeId, checkDate: date,checkOutTime: "null" },
-        { checkOutTime: time },
+        { checkOutTime: time},
       );
+      console.log("check: "+check);
 
       const record = await CheckInOut.findOne({
         employee: employeeId,
@@ -95,7 +106,7 @@ const startWork = async (employeeIdStr) => {
         checkOutTime: time
       });
       
-      console.log(record);
+      console.log("record: "+record);
       if (record) {
         console.log(`Work stopped at ${date}:${record.checkOutTime} for employee ${record['employeeId']}`);
         return record.checkOutTime;
@@ -174,22 +185,125 @@ const startWork = async (employeeIdStr) => {
   
 
 
-  // Express routes
-  router.post('/api/start-work', async (req, res) => {
+
+ // Start Work API
+ router.post('/startWork1', async (req, res) => {
+  const { employeeId, checkInTime, checkDate, timeZone } = req.body;
+
+  try {
+    let employeeObjectId = new mongoose.Types.ObjectId(employeeId);
     
-    const { userId } = req.body;
+    const checkIn = new CheckInOut({
+      checkInTime: checkInTime, // Time passed from the Flutter frontend
+      checkDate: checkDate, // Date passed from the Flutter frontend
+      employeeId: employeeObjectId,
+      checkOutTime: null,
+      timeZone: timeZone // Store the time zone for potential later use
+    });
+
+    await checkIn.save();
+    console.log(checkIn);
+    console.log(`Work started at ${checkDate}:${checkIn.checkInTime} for employee ${employeeId}`);
     
-    checkIn = await startWork(userId);
+    return res.status(200).json({ message: 'Check-in successful', data: checkIn });
+  } catch (err) {
+    console.error('Error starting work:', err);
+    return res.status(500).json({ error: 'Error starting work' });
+  }
+});
+// Start work 
+// Define the route for starting work (check-in)
+router.post('/startWork', async (req, res) => {
+  console.log(req.body);
+  const { userId, checkInTime, timeZone, checkDate } = req.body;
+  //const employeeId = req.body.userId.value;
+  //console.log(userId);
+  // console.log(userId);
+  // console.log(checkInTime);
+  // console.log(timeZone);
+  // console.log(checkDate);
+
+  try {
+    let employeeObjectId = new mongoose.Types.ObjectId(userId);
     
-    res.status(200).json({ status: true, success: "sendData", checkIn: checkIn });
-  });
-  
+    // Combine checkDate and checkInTime into a single datetime string
+    // const localDateTime = `${checkDate}`;
+    // console.log("local: "+localDateTime);
+    // Convert the local datetime and timezone to UTC using moment-timezone
+    //const utcDateTime = moment.tz(localDateTime, timeZone).toDate();
+    //console.log("utc: "+utcDateTime);
+    const checkIn = new CheckInOut({
+      checkInTime: checkInTime, // The converted UTC datetime
+      checkDate: checkDate, // Optionally, you can store the UTC date here as well
+      employeeId: userId,
+      checkOutTime: null,
+      timeZone: timeZone // Still store the original timezone for future reference
+    });
+
+    await checkIn.save();
+    console.log(checkIn);
+    console.log(`Work started at ${checkIn.checkInTime} (UTC) for employee ${userId}`);
+    
+    return res.status(200).json({ status:true, message: 'Check-in successful', data: checkIn });
+  } catch (err) {
+    console.error('Error starting work:', err);
+    return res.status(500).json({ error: 'Error starting work' });
+  }
+});
+  // End Work 1
   router.post('/api/stop-work', async (req, res) => {
-    const { employeeId} = req.body;
-    const checkOut = await stopWork(employeeId);
+    const { employeeId, time, checkDate} = req.body;
+    console.log(employeeId+" //// "+time+" //// "+checkDate);
+    const checkOut = await stopWork(employeeId, time, checkDate);
     res.status(200).json({ status: true, success: "sendData1", checkOut: checkOut });
   });
-  
+   // End Work 2 
+  // Define the route for ending work (check-out)
+router.post('/stopWork', async (req, res) => {
+  const { userId,checkOutTime,  timeZone,checkDate,  } = req.body;
+  console.log(userId);
+  console.log(checkOutTime);
+  console.log(timeZone);
+  console.log(checkDate);
+
+  try {
+    let employeeObjectId = new mongoose.Types.ObjectId(userId);
+
+    // Convert the checkDate and timeZone to a UTC date (start of the day in the given time zone)
+    const StartOfDay = `${checkDate} 00:00`;
+    const EndOfDay = `${checkDate} 23:59`;
+    console.log(StartOfDay+" "+EndOfDay);
+    // Convert the local check-out time to UTC
+    // const localOutDateTime = `${checkDate} ${checkOutTime}`;
+    // console.log("local: "+localOutDateTime);
+    // const utcCheckOutTime = moment.tz(localOutDateTime, timeZone).toDate();
+    // console.log("utc: "+utcCheckOutTime);
+    
+    // Find the document based on employeeId and checkDate within that day
+    console.log(userId);
+    const utccheckDate = moment.utc(checkDate).toDate();
+    console.log(utccheckDate)
+    const result = await CheckInOut.findOneAndUpdate(
+      {
+        employeeId: employeeObjectId, // employeeObjectId,
+        checkDate: utccheckDate //{ $gte: StartOfDay, $lte: EndOfDay } // Match within the same day
+      },
+      { $set: { checkOutTime: checkOutTime } },  // Update the checkOutTime to the passed time
+      { new: true } // Return the updated document
+    );
+    console.log(result);
+    if (result) {
+      console.log(`Work ended for employee ${userId} at ${checkOutTime} (UTC)`);
+      return res.status(200).json({ status:true,  message: 'Check-out successful', data: result });
+    } else {
+      return res.status(404).json({ error: 'Check-in record not found for the specified employee' });
+    }
+
+  } catch (err) {
+    console.error('Error ending work:', err);
+    return res.status(500).json({ error: 'Error ending work' });
+  }
+});
   router.post('/api/calculate-hours', async (req, res) => {
     console.log("Here now with requset : "+req.body['userId'])
     const employeeId  = req.body['userId'];
@@ -214,6 +328,75 @@ const startWork = async (employeeIdStr) => {
   
     res.status(200).json({ message: 'successfully' , tempA });
   })
+// api to retern history of this month 
+router.post("/monthlyHistory", async(req, res) => {
+  const { employeeId } = req.body;
+  
+  console.log("Id "+ employeeId);
+
+  try {
+    let employeeObjectId = new mongoose.Types.ObjectId(employeeId);
+    // Get the current date and calculate the start and end of the month
+    console.log("Id obj "+ employeeObjectId);
+    const now = moment.tz('Asia/Damascus'); // Current time in the employee's local time zone
+    const startOfMonth = now.clone().startOf('month').toDate(); // Start of month in UTC
+    const endOfMonth = now.clone().endOf('month').toDate();     // End of month in UTC
+    console.log(startOfMonth);
+    console.log(endOfMonth);
+    // Find records for the employee within the current month (in UTC)
+     tempA = await CheckInOut.find({
+      employeeId: employeeObjectId,
+      checkDate: { $gte: startOfMonth, $lte: endOfMonth }
+    });
+     // Convert the check-in and check-out times from UTC to local time zone
+    // const convertedRecords = tempA.map(record => ({
+    //   ...record.toObject(), // Convert the Mongoose document to a plain JS object
+    //   checkInTime: moment.utc(record.checkInTime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss'), // Convert to local time
+    //   checkOutTime: record.checkOutTime ? moment.utc(record.checkOutTime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss') : null, // Convert if exists
+    // }));
+
+    // Respond with the filtered and converted records
+    res.status(200).json({ message: 'successfully',  tempA });
+
+  } catch (err) {
+    console.error('Error fetching history:', err);
+    res.status(500).json({ error: 'Error fetching history' });
+  }
+});
+// last Month
+router.post("/lastmonthlyHistory", async (req, res) => {
+  const { employeeId, timeZone } = req.body;
+
+  try {
+    // Get the current date and calculate the start and end of the previous month
+    const now = moment.tz(timeZone); // Current time in the employee's local time zone
+    const startOfLastMonth = now.clone().subtract(1, 'month').startOf('month').toDate(); // Start of last month in UTC
+    const endOfLastMonth = now.clone().subtract(1, 'month').endOf('month').toDate();     // End of last month in UTC
+
+    console.log(startOfLastMonth);
+    console.log(endOfLastMonth);
+
+    // Find records for the employee within the last month (in UTC)
+    const tempA = await CheckInOut.find({
+      employeeId: new mongoose.Types.ObjectId(employeeId),
+      checkDate: { $gte: startOfLastMonth, $lte: endOfLastMonth }
+    });
+
+    // // Convert the check-in and check-out times from UTC to local time zone
+    // const convertedRecords = tempA.map(record => ({
+    //   ...record.toObject(), // Convert the Mongoose document to a plain JS object
+    //   checkInTime: moment.utc(record.checkInTime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss'), // Convert to local time
+    //   checkOutTime: record.checkOutTime ? moment.utc(record.checkOutTime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss') : null, // Convert if exists
+    // }));
+
+    // Respond with the filtered and converted records
+    res.status(200).json({ message: 'successfully',  tempA });
+
+  } catch (err) {
+    console.error('Error fetching history:', err);
+    res.status(500).json({ error: 'Error fetching history' });
+  }
+});
 
 
     module.exports = router;

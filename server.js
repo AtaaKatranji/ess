@@ -20,7 +20,7 @@ app.use('/checks', checksRoutes);
 app.use('/todolist', todo);
 
 //const hostname = '192.168.1.109'; // for Home's wifi
-const hostname = '192.168.1.111'; // for Home's wifi
+const hostname = '192.168.100.8'; // for Home's wifi
 //const hostname = '192.168.48.138'; // for hotspot my mobile
 
 const port = process.env.PORT || 9000;

@@ -38,14 +38,15 @@ const checkInOutSchema = new mongoose.Schema({
   employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', required: true },
   checkDate: { type: Date, required: true },
   checkInTime: { type: String, required: true },
-  checkOutTime: { type: String, required: true },
+  checkOutTime: { type: String, },
+  timeZone: {type: String, required: true, },
   qrCodeOrIpAddress: { type: String, }
 });
 // Define the SubTask schema
 const subTaskSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true,
+    required: true,     
   },
   toDoItem: {
     type: mongoose.Schema.Types.ObjectId,
