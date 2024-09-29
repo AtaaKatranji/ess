@@ -13,7 +13,7 @@ const checksRoutes = require('./routes/apis');
 const test = require("./routes/user.routes");
 const todo = require("./routes/toDo_apis");
 
-app.use('/test',test);
+app.use('/api',test);
 app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 app.use('/checks', checksRoutes);
