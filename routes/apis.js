@@ -121,15 +121,9 @@ const startWork = async (employeeIdStr) => {
   };
   
   // Calculate Total Hours
-
-
   const calculateTotalHours = async (employeeId, month, year) => {
-      console.log(year);
-      console.log(month);
-      
       let startDate = new Date(year, month - 1);
       let endDate;
-      
       const now = new Date();
       if (now.getFullYear() === year && now.getMonth() === month - 1) {
           // If the current date is in the specified month and year
@@ -138,12 +132,7 @@ const startWork = async (employeeIdStr) => {
           // Otherwise, set endDate to the start of the next month
           endDate = new Date(year, month, 1);
       }
-      
-      console.log(startDate);
-      console.log(endDate);
-      
       try {
-          console.log("I'm in Hours :" + employeeId);
           const sessions = await CheckInOut.find({
               employeeId: employeeId,
               checkDate: { $gte: startDate, $lt: endDate },
@@ -154,21 +143,14 @@ const startWork = async (employeeIdStr) => {
           let checkOutTime;
           let checkInTime;
           sessions.forEach(entry => {
-            if(moment(entry.checkOutTime, 'HH:mm')== null){
+            if( entry.checkOutTime == null){
               
               return;
                 
               }else{
-                 checkInTime = moment(entry.checkInTime, 'HH:mm');
-                console.log(checkInTime);
-
+                checkInTime = moment(entry.checkInTime, 'HH:mm');
                 checkOutTime = moment(entry.checkOutTime, 'HH:mm');
-                console.log(checkOutTime);
-                console.log("-------------------");
-                console.log(Math.abs(checkOutTime.diff(checkInTime, 'minutes')));
               }
-              
-              
               totalMinutes += Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
               
           });
@@ -305,11 +287,9 @@ router.post('/stopWork', async (req, res) => {
   }
 });
   router.post('/api/calculate-hours', async (req, res) => {
-    console.log("Here now with requset : "+req.body['userId'])
     const employeeId  = req.body['userId'];
     const month = getMonthNumber(req.body['month']);
     const year = req.body['year'];
-    console.log(year)
     total = await calculateTotalHours(employeeId,month,year);
     res.status(200).json({ status: true, success: "sendData", total: total });
    
