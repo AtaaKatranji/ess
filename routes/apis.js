@@ -397,6 +397,23 @@ router.post("/lastmonthlyHistory", async (req, res) => {
     res.status(500).json({ error: 'Error fetching history' });
   }
 });
-
+// Current Check
+router.post("/api/checkcurrentday", async(req, res)=> {
+  const {userId, date}=req.body;
+  const utccheckDate = moment.utc(date).toDate();
+  try {
+    check = await CheckInOut.findOne({
+      employeeId:userId,
+      checkDate:utccheckDate
+    });
+    checkTime = {
+      "checkIn":check['checkInTime'],
+      "checkOut":check['checkOutTime'],
+    }
+    res.status(200).json({ message: 'successfully',  checkTime });
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching history' });
+  }
+  });
 
     module.exports = router;
