@@ -60,6 +60,21 @@ const getCurrentTime = () => {
   console.log(time);
   return { "time" : time, "date" : date };
 };
+// converter 12 system to 24 system
+const convertTo24HourFormat = (time) => {
+  console.log(time)
+  console.log(time.split(' '))
+  let [timeString, modifier] = time.split(' ');
+  let [hours, minutes] = timeString.split(':').map(Number);
+
+  if (modifier === 'PM' && hours !== 12) {
+      hours += 12;
+  } else if (modifier === 'AM' && hours === 12) {
+      hours = 0;
+  }
+
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
 //get current user
 const getCurrentUser = async (employeeId, date) => {
 
@@ -134,30 +149,27 @@ const startWork = async (employeeIdStr) => {
       }
       try {
           const sessions = await CheckInOut.find({
-              employeeId: employeeId,
+              employeeId: new mongoose.Types.ObjectId(employeeId),
               checkDate: { $gte: startDate, $lt: endDate },
           });
-      
           console.log(sessions);
           let totalMinutes = 0;
           let checkOutTime;
           let checkInTime;
+          let checkOutT;
+
           sessions.forEach(entry => {
             if( entry.checkOutTime == null){
-              
               return;
-                
               }else{
                 checkInTime = moment(entry.checkInTime, 'HH:mm');
-                checkOutTime = moment(entry.checkOutTime, 'HH:mm');
+                checkOutT= convertTo24HourFormat(entry.checkOutTime);
+                checkOutTime = moment(checkOutT, 'HH:mm');
               }
               totalMinutes += Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
-              
           });
-          
-         
           const totalHours = (totalMinutes / 60).toFixed(2);
-          console.log(`Total Hours worked by employee ${employeeId} in month: ${totalHours}`);
+          console.log(`Total Hours worked by employee ${employeeId} in month:${month} ${totalHours}`);
           return { totalHours, totalMinutes };
       } catch (err) {
           console.error('Error calculating total hours:', err);
@@ -287,6 +299,7 @@ router.post('/stopWork', async (req, res) => {
   }
 });
   router.post('/api/calculate-hours', async (req, res) => {
+    
     const employeeId  = req.body['userId'];
     const month = getMonthNumber(req.body['month']);
     const year = req.body['year'];
