@@ -112,12 +112,20 @@ exports.signIn = async (req, res) => {
     
 
         token = await UserServices.generateAccessToken(tokenData,process.env.JWT_SECRET,"1h")
-
+        res.setHeader('Set-Cookie', serialize('token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production', // Ensure it's only secure in production
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 24, // 1 day expiration
+          path: '/',
+        }));
+    
+        return  res.status(200).json({ message: 'Login successful' });
     // If authentication is successful, respond with a success message (or JWT if needed)
-    return res.status(200).json({ message: 'Sign in successful', admin , token});
+     //res.status(200).json({ message: 'Sign in successful', admin , token});
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Method Not Allowed' });
   }
 };
 
