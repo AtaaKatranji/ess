@@ -1,7 +1,7 @@
 const Admin = require('../models/admin'); // Adjust the path if necessary
 const bcrypt = require('bcrypt');
 const UserServices = require('../services/user_services');
-
+import { serialize } from 'cookie';
 // Create (Save) - Register a new admin
 exports.createAdmin = async (req, res) => {
   try {
