@@ -4,12 +4,12 @@ const UserServices = require('../services/user_services');
 exports.register = async (req, res, next) => {
     try {
         console.log("---req body---", req.body);
-        const { name, phoneNumber, password } = req.body;
+        const { name, phoneNumber, institutionKey, password } = req.body;
         const duplicate = await UserServices.getUserByPhoneNumber(phoneNumber);
         if (duplicate) {
             throw new Error(`UserName ${phoneNumber}, Already Registered`)
         }
-        const response = await UserServices.registerUser(name, phoneNumber, password);
+        const response = await UserServices.registerUser(name, phoneNumber,institutionKey, password);
 
         res.json({ status: true, success: 'User registered successfully' });
 
@@ -44,16 +44,16 @@ exports.login = async (req, res) => {
         const isPasswordCorrect = await user.comparePassword(password);
 
         if (isPasswordCorrect === false) {
-            throw new Error(`Username or Password does not match`);
+            throw new Error(`Password does not match`);
         }
 
         // Creating Token
         console.log("before generate token")
         let tokenData;
-        tokenData = { _id: user._id, phoneNumber: user.phoneNumber,name:user.name };
+        tokenData = { _id: user._id, phoneNumber: user.phoneNumber,name:user.name,institutionKey:user.institutionKey };
     
 
-        const token = await UserServices.generateAccessToken(tokenData,"secret","1h")
+        const token = await UserServices.generateAccessToken(tokenData,process.env.JWT_SECRET,"1d")
         console.log(user._id)
         console.log(token)
         res.status(200).json({ status: true, success: "sendData", token: token });
@@ -84,3 +84,13 @@ exports.test = async (req, res, next) => {
         next(err);
     }
 }
+// Get all users
+exports.getAllUsersOfInstitution = async (req, res) => {
+    const { institutionKey } = req.body;
+    try {
+      const users = await UserModel.find({ institutionKey });
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ error: 'Error fetching users' });
+    }
+  };

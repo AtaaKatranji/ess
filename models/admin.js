@@ -4,14 +4,13 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 
-// Define schema for Employees table
-const userSchema = new Schema({
+// Define schema for Admin table
+const adminSchema = new Schema({
     name: { type: String, required: true , minlength: 3,maxlength: 50 },
     phoneNumber: { type: String, required: true,unique: true,
       lowercase: true,
       trim: true,
       },
-    institutionKey: {type: String,required:true},
     password: { type: String, required: true,minlength: 8 },
     // role: { type: String, required: true },
     // birthday: { type: Date, required: true },
@@ -27,21 +26,21 @@ const userSchema = new Schema({
   });
 
 // used while encrypting user entered password
-userSchema.pre("save",async function(){
-    var user = this;
-    if(!user.isModified("password")){
+adminSchema.pre("save",async function(){
+    var admin = this;
+    if(!admin.isModified("password")){
         return
     }
     try{
         const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(user.password,salt);
-        user.password = hash;
+        const hash = await bcrypt.hash(admin.password,salt);
+        admin.password = hash;
     }catch(err){
         throw err;
     }
 });
 //used while signIn decrypt
-userSchema.methods.comparePassword = async function (candidatePassword) {
+adminSchema.methods.comparePassword = async function (candidatePassword) {
     try {
         console.log('----------------no password',this.password);
         // @ts-ignore
@@ -54,5 +53,5 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 
 
   
-const UserModel = mongoose.model('user',userSchema);
-module.exports = UserModel;
+const Admin = mongoose.model('Admin',adminSchema);
+module.exports = Admin;
