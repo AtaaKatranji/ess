@@ -38,7 +38,7 @@ exports.getAllInstitutions = async (req, res) => {
     try {
       const adminId = req.adminId; // Now coming from verifyToken middleware
       console.log('Admin ID:', adminId);
-  
+      
       const institutions = await Institution.find({ adminId }); // Filter by adminId
   
       res.setHeader('Access-Control-Allow-Origin', 'https://ess-admin-lime.vercel.app'); // Allow frontend origin
