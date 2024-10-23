@@ -7,9 +7,10 @@ const cors = require('cors');
 const app = express();
 // Enable CORS for specific origin
 app.use(cors({
-  origin: ['http://localhost:3000','https://ess-admin-lime.vercel.app','https://ess-admin-k3lln6fs7-ataakatranjis-projects.vercel.app'], // Allow requests from this origin
+  origin: ['http://localhost:3000','https://ess-admin-lime.vercel.app','https://ess-admin-lime.vercel.app','https://ess-admin-k3lln6fs7-ataakatranjis-projects.vercel.app'], // Allow requests from this origin
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+  credentials: true,
 }));
 
 app.use(express.json());

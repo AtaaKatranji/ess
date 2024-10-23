@@ -120,6 +120,9 @@ exports.signIn = async (req, res) => {
       maxAge: 60 * 60 * 24, // 1 day expiration
       path: '/',
     }));
+    res.setHeader('Access-Control-Allow-Origin', 'https://ess-admin-lime.vercel.app'); // Or http://localhost:3000 for local testing
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
 
     // Send successful response
     return res.status(200).json({ message: 'Login successful' });
