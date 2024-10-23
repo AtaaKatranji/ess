@@ -23,7 +23,10 @@ app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
 
+// Use the cookieParser middleware
+app.use(cookieParser());
 const admins = require('./routes/adminRoutes')
 const userRoutes = require('./routes/user');
 // const checksRoutes = require('./routes/apis');

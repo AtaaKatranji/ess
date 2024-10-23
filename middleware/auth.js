@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
 exports.authenticateToken = (req, res, next) => {
   //const token = req.headers['authorization']?.split(' ')[1]; // Bearer <token>
