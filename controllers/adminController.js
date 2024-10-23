@@ -117,8 +117,8 @@ exports.signIn = async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Set-Cookie', serialize('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Ensure it's only secure in production
-      sameSite: 'none',
+      secure: true, // Only works over HTTPS
+      sameSite: 'None', // Allows cross-origin requests
       maxAge: 60 * 60 * 24, // 1 day expiration
       path: '/',
     }));
