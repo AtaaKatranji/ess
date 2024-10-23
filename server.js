@@ -5,16 +5,19 @@ const { Employee } = require("./models/schmeaESS");
 require("./config/db")
 const cors = require('cors');
 const app = express();
-// Enable CORS for specific origin
-app.use(cors({
-  origin: 'https://ess-admin-lime.vercel.app', // Your frontend's origin
-  credentials: true, // This allows credentials (like cookies) to be sent
-  allowedHeaders: ['Content-Type'], // Allow the necessary headers
-  methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
-}));
+// CORS options to allow all necessary headers and credentials
+const corsOptions = {
+  origin: 'https://ess-admin-lime.vercel.app', // Allow only your frontend domain
+  credentials: true, // Allow cookies and credentials
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow Content-Type and Authorization headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow these HTTP methods
+};
 
-// Handle preflight requests (OPTIONS method)
-app.options('*', cors()); 
+// Apply the CORS middleware globally for all routes
+app.use(cors(corsOptions));
+
+// Handle preflight requests (OPTIONS)
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));

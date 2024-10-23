@@ -50,7 +50,8 @@ exports.getInstitutionById = async (req, res) => {
     try {
       const institution = await Institution.findById(req.params.id);
       if (!institution) return res.status(404).json({ message: 'Institution not found' });
-  
+      res.setHeader('Access-Control-Allow-Origin', 'https://ess-admin-lime.vercel.app'); // Allow the frontend origin
+      res.setHeader('Access-Control-Allow-Credentials', 'true');  
       res.status(200).json(institution);
     } catch (error) {
       res.status(500).json({ message: error.message });
