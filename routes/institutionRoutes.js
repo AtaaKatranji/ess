@@ -28,7 +28,7 @@ router.get('/institutions/slug/:slug', authenticateToken, getInstitutionBySlug);
 
 // Other routes
 router.post('/institutions', authenticateToken, validateInstitution, createInstitution);
-router.get('/institutions', authenticateToken, getAllInstitutions);
+router.get('/institutions', verifyToken, getAllInstitutions);
 router.post('/check-name', authenticateToken, checkName);
 router.post('/networks',  getNetworks);
 
