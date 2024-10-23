@@ -1,7 +1,7 @@
 const Admin = require('../models/admin'); // Adjust the path if necessary
 const bcrypt = require('bcrypt');
 const UserServices = require('../services/user_services');
-import { serialize } from 'cookie';
+const { serialize } = require('cookie');
 // Create (Save) - Register a new admin
 exports.createAdmin = async (req, res) => {
   try {
@@ -107,27 +107,30 @@ exports.signIn = async (req, res) => {
       return res.status(400).json({ message: 'Invalid phone number or password' });
     }
 
-    let tokenData;
-        tokenData = { _id: admin._id, phoneNumber: admin.phoneNumber,name:admin.name };
-    
+    let tokenData = { _id: admin._id, phoneNumber: admin.phoneNumber, name: admin.name };
 
-        token = await UserServices.generateAccessToken(tokenData,process.env.JWT_SECRET,"1h")
-        res.setHeader('Set-Cookie', serialize('token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production', // Ensure it's only secure in production
-          sameSite: 'strict',
-          maxAge: 60 * 60 * 24, // 1 day expiration
-          path: '/',
-        }));
-    
-        return  res.status(200).json({ message: 'Login successful' });
-    // If authentication is successful, respond with a success message (or JWT if needed)
-     //res.status(200).json({ message: 'Sign in successful', admin , token});
+    // Generate the token
+    const token = await UserServices.generateAccessToken(tokenData, process.env.JWT_SECRET, "1h");
+
+    // Set the token as a cookie
+    res.setHeader('Set-Cookie', serialize('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Ensure it's only secure in production
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24, // 1 day expiration
+      path: '/',
+    }));
+
+    // Send successful response
+    return res.status(200).json({ message: 'Login successful' });
+
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Method Not Allowed' });
+    // Return internal server error
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
 
 // Function to check if an admin ID exists
 exports.isValidAdminId = async (adminId) => {
