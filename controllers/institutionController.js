@@ -34,13 +34,16 @@ exports.getAllInstitutions = async (req, res) => {
     }
   };
   // GET /ins/institutionsAdmin
-exports.getAllAdminInstitutions = async (req, res) => {
+  exports.getAllAdminInstitutions = async (req, res) => {
     try {
-      const { adminId } = req.params; // Assuming adminId is passed as a URL parameter
-      // const adminId = req.query.adminId; // Alternatively, if passed as a query parameter
-      console.log(adminId);
+      const adminId = req.adminId; // Now coming from verifyToken middleware
+      console.log('Admin ID:', adminId);
+  
       const institutions = await Institution.find({ adminId }); // Filter by adminId
-      res.status(200).json(institutions);
+  
+      res.setHeader('Access-Control-Allow-Origin', 'https://ess-admin-lime.vercel.app'); // Allow frontend origin
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.status(200).json(institutions); // Send the institutions as response
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
