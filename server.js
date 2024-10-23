@@ -7,11 +7,14 @@ const cors = require('cors');
 const app = express();
 // Enable CORS for specific origin
 app.use(cors({
-  origin: ['http://localhost:3000','https://ess-admin-lime.vercel.app','https://ess-admin-lime.vercel.app','https://ess-admin-k3lln6fs7-ataakatranjis-projects.vercel.app'], // Allow requests from this origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
-  credentials: true,
+  origin: 'https://ess-admin-lime.vercel.app', // Your frontend's origin
+  credentials: true, // This allows credentials (like cookies) to be sent
+  allowedHeaders: ['Content-Type'], // Allow the necessary headers
+  methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
 }));
+
+// Handle preflight requests (OPTIONS method)
+app.options('*', cors()); 
 
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
@@ -49,4 +52,10 @@ app.get("/",(req, res)=>{
 app.get("/ins",(req, res)=>{
   res.send("Hello in ins 9000")
 });
-
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://ess-admin-lime.vercel.app');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.sendStatus(200); // Send a success status for the preflight request
+});

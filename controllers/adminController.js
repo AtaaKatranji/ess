@@ -113,6 +113,8 @@ exports.signIn = async (req, res) => {
     const token = await UserServices.generateAccessToken(tokenData, process.env.JWT_SECRET, "1h");
 
     // Set the token as a cookie
+    res.setHeader('Access-Control-Allow-Origin', 'https://ess-admin-lime.vercel.app'); // Allow the frontend origin
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Set-Cookie', serialize('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Ensure it's only secure in production
