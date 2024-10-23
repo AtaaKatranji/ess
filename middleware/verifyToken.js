@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const verifyToken = (req, res, next) => {
+exports.verifyToken = (req, res, next) => {
   const token = req.cookies.token; // Access token from cookies
 
   if (!token) {
@@ -16,4 +16,4 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-module.exports = verifyToken;
+
