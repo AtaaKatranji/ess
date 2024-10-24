@@ -34,7 +34,7 @@ exports.getAllInstitutions = async (req, res) => {
     }
   };
   // GET /ins/institutionsAdmin
-  exports.getAllAdminInstitutions = async (req, res) => {
+exports.getAllAdminInstitutions = async (req, res) => {
     try {
       const adminId = req.adminId; // Now coming from verifyToken middleware
       console.log('Admin ID:', adminId);
@@ -81,8 +81,9 @@ exports.getInstitutionBySlug = async (req, res) => {
   // PUT /api/institutions/:id
 exports.updateInstitution = async (req, res) => {
     try {
-      const { name, address, adminId, keyNumber, macAddresses, image } = req.body;
+      const { name, address, keyNumber, macAddresses, image } = req.body;
       const { slug } = req.params;
+      const adminId = req.adminId;
       const updatedInstitution = await Institution.findOneAndUpdate(
         {slug},
         {
