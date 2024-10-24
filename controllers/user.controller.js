@@ -56,7 +56,7 @@ exports.login = async (req, res) => {
         const token = await UserServices.generateAccessToken(tokenData,process.env.JWT_SECRET,"1d")
         console.log(user._id)
         console.log(token)
-        res.status(200).json({ status: true, success: "sendData", token: token });
+        res.status(200).json({ status: true, success: "sendData", token: token,uniqueKey:user.institutionKey  });
     } catch (error) {
         console.log(error, 'err---->');
         res.status(500).json({ status: false, message: error.message });
