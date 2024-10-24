@@ -197,7 +197,7 @@ exports.update = async (req, res) => {
       {
         _id: objectId,
       },
-      { $set: { checkInTime:checkTimeFormat12(checkInTime) ,checkOutTime: checkTimeFormat12(checkOutTime) } },  // Update the checkOutTime to the passed time
+      { $set: { checkInTime:checkTimeFormat12(checkInTime) ,checkOutTime: checkTimeFormat12(checkOutTime),checkDate: utccheckDate } },  // Update the checkOutTime to the passed time
       { new: true } // Return the updated document
     );
     console.log(result);
