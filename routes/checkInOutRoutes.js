@@ -6,6 +6,7 @@ const checkInOutController = require('../controllers/checkInOutController');
 router.post('/startWork', checkInOutController.checkIn);
 router.post('/stopWork', checkInOutController.checkOut);
 router.post('/calculate-hours', checkInOutController.getTotalHours);
+router.post('/calculate-lateHours', checkInOutController.getTotalLateHours);
 router.put('/update', checkInOutController.update);
 router.post('/getAllHistory', checkInOutController.getAllHistory);
 router.post('/monthlyHistory', checkInOutController.getMonthlyHistory);

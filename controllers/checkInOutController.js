@@ -107,7 +107,55 @@ const calculateTotalHours = async (employeeId, month, year) => {
   }
 };
   
-  
+const calculateTotalLateHours = async (employeeId, month, year) => {
+  let startDate = new Date(year, month - 1);
+  let endDate;
+  const now = new Date();
+  if (now.getFullYear() === year && now.getMonth() === month - 1) {
+      // If the current date is in the specified month and year
+      endDate = new Date(year, month - 1, now.getDate()); // Start of today
+  } else {
+      // Otherwise, set endDate to the start of the next month
+      endDate = new Date(year, month, 1);
+  }
+  try {
+      const sessions = await CheckInOut.find({
+          employeeId: new mongoose.Types.ObjectId(employeeId),
+          checkDate: { $gte: startDate, $lt: endDate },
+      });
+      console.log(sessions);
+      let totalMinutes = 0;
+      let lateMinutes = 0;
+      let extraMInutes = 0;
+      let checkOutTime;
+      let checkInTime;
+      let checkOutT;
+
+      sessions.forEach(entry => {
+        if( entry.checkOutTime == null){
+          return;
+          }else{
+            checkInTime = moment(entry.checkInTime, 'HH:mm');
+            checkOutT= convertTo24HourFormat(entry.checkOutTime);
+            checkOutTime = moment(checkOutT, 'HH:mm');
+          }
+          
+          totalMinutes += Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
+          const diffInMinutes = 480 - Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
+          if(diffInMinutes>=0){
+             extraMInutes += diffInMinutes;
+          }else{
+             lateMinutes += Math.abs(diffInMinutes);
+          }
+      });
+      const totalExtraHours = (extraMInutes / 60).toFixed(2);
+      const totalLateHours = (lateMinutes / 60).toFixed(2);
+      console.log(`Extra And lates Hours worked by employee ${employeeId} in month:${month} ${totalExtraHours}:${totalLateHours}`);
+      return [ totalExtraHours, totalLateHours ];
+  } catch (err) {
+      console.error('Error calculating Ex/La hours:', err);
+  }
+};  
 
 //---------Main Functions------------
 // Check In
@@ -197,7 +245,7 @@ exports.update = async (req, res) => {
       {
         _id: objectId,
       },
-      { $set: { checkInTime:checkTimeFormat12(checkInTime) ,checkOutTime: checkTimeFormat12(checkOutTime),checkDate: checkDate } },  // Update the checkOutTime to the passed time
+      { $set: { checkInTime:checkTimeFormat12(checkInTime) ,checkOutTime: checkTimeFormat12(checkOutTime),checkDate: utccheckDate } },  // Update the checkOutTime to the passed time
       { new: true } // Return the updated document
     );
     console.log(result);
@@ -288,6 +336,13 @@ exports.getTotalHours = async (req, res) => {
     const year = req.body['year'];
     total = await calculateTotalHours(employeeId,month,year);
     res.status(200).json({ status: true, success: "sendData", total: total });
+};
+exports.getTotalLateHours = async (req, res) => {
+  const employeeId  = req.body['userId'];
+  const month = getMonthNumber(req.body['month']);
+  const year = req.body['year'];
+  [totalExtraHours,totalLateHours] = await calculateTotalLateHours(employeeId,month,year);
+  res.status(200).json({ status: true, success: "sendData", totalExtr: totalExtraHours,totalLate:totalLateHours });
 };
 // Current Check
 exports.currentCheck = async(req, res)=> {
