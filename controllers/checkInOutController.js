@@ -124,7 +124,6 @@ const calculateTotalLateHours = async (employeeId, month, year) => {
           checkDate: { $gte: startDate, $lt: endDate },
       });
       console.log(sessions);
-      let totalMinutes = 0;
       let lateMinutes = 0;
       let extraMInutes = 0;
       let checkOutTime;
@@ -139,11 +138,10 @@ const calculateTotalLateHours = async (employeeId, month, year) => {
             checkOutT= convertTo24HourFormat(entry.checkOutTime);
             checkOutTime = moment(checkOutT, 'HH:mm');
           }
-          
-          totalMinutes += Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
           const diffInMinutes = 480 - Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
-          if(diffInMinutes>=0){
-             extraMInutes += diffInMinutes;
+          console.log(diffInMinutes)
+          if(diffInMinutes<=0){
+             extraMInutes += Math.abs(diffInMinutes);
           }else{
              lateMinutes += Math.abs(diffInMinutes);
           }
