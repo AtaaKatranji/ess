@@ -1,15 +1,15 @@
-import { find } from '../models/user.model';
-import { find as _find } from '../models/leaves';
-import { find as __find } from '../models/payroll';
-import { CheckInOut } from '../models/schmeaESS';
+const User = require('../models/user.model');
+const Leave = require('../models/leaves');
+const Payroll = require('../models/payroll');
+const {CheckInOut} = require('../models/schmeaESS');
 
 
-export async function getOverView(req, res) {
+exports.getOverView = async (req, res) => {
     try {
       const { startDate, endDate } = req.query;
       
       // Fetch all employees
-      const employees = await find();
+      const employees = await User.find();
       
       // Fetch checks within date range
       const checks = await CheckInOut.find({
@@ -17,13 +17,13 @@ export async function getOverView(req, res) {
       });
       
       // Fetch leaves within date range
-      const leaves = await _find({
+      const leaves = await Leave.find({
         date: { $gte: new Date(startDate), $lte: new Date(endDate) }
       });
       
       // Fetch payroll for the month
       const [year, month] = startDate.split('-');
-      const payrolls = await __find({ year: parseInt(year), month: parseInt(month) });
+      const payrolls = await Payroll.find({ year: parseInt(year), month: parseInt(month) });
       
       // Combine data
       const combinedData = employees.map(employee => {
@@ -47,5 +47,5 @@ export async function getOverView(req, res) {
       console.error('Error fetching attendance data:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
-  }
+  };
 

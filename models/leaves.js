@@ -1,9 +1,9 @@
-import { Schema, model } from 'mongoose';
-const leaveSchema = new Schema({
-    employeeId: Schema.Types.ObjectId,
+const mongoose = require('mongoose');
+const leaveSchema = new mongoose.Schema({
+    employeeId: mongoose.Schema.Types.ObjectId,
     date: Date,
     type: String, // 'paid', 'unpaid', 'sick', etc.
   });
 
-const Leave = model('Leave', leaveSchema);
-export default Leave;
+const Leave = mongoose.model('Leave', leaveSchema);
+module.exports = Leave;
