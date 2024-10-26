@@ -7,7 +7,7 @@ const {CheckInOut} = require('../models/schmeaESS');
 exports.getOverView = async (req, res) => {
     try {
       const { startDate, endDate } = req.query;
-      
+      console.log(startDate,endDate);
       // Fetch all employees
       const employees = await User.find();
       
@@ -16,7 +16,7 @@ exports.getOverView = async (req, res) => {
         checkDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
       });
       
-      console.log();
+      
       // Fetch leaves within date range
       const leaves = await Leave.find({
         
