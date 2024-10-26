@@ -13,12 +13,14 @@ exports.getOverView = async (req, res) => {
       
       // Fetch checks within date range
       const checks = await CheckInOut.find({
-        date: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        checkDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
       });
       
+      console.log();
       // Fetch leaves within date range
       const leaves = await Leave.find({
-        date: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        
+        date: { $gte: new Date("2024-10-25"), $lte: new Date("2024-10-25") }
       });
       
       // Fetch payroll for the month
