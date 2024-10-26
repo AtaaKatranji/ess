@@ -134,10 +134,10 @@ const calculateTotalLateHours = async (employeeId, month, year) => {
         if( entry.checkOutTime == null){
           return;
           }else{
-            checkInTime = moment(entry.checkInTime, 'HH:mm');
-            checkOutT= convertTo24HourFormat(entry.checkOutTime);
-            checkOutTime = moment(checkOutT, 'HH:mm');
+            checkInTime = moment( convertTo24HourFormat(entry.checkOutTime), 'HH:mm');
+            checkOutTime = moment(convertTo24HourFormat(entry.checkOutTime), 'HH:mm');
           }
+          console.log(Math.abs(checkOutTime.diff(checkInTime, 'minutes')))
           const diffInMinutes = 480 - Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
           console.log(diffInMinutes)
           if(diffInMinutes<=0){
