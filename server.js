@@ -38,7 +38,7 @@ const overView = require('./routes/overViewRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 app.use('/adm/admins', admins);
-app.use('/api/attendance', overView);
+app.use('/attendance', overView);
 app.use('/api',test);
 app.use('/users', userRoutes);
 app.use('/checks', checksRoutes);
