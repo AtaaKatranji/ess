@@ -123,18 +123,17 @@ const calculateTotalLateHours = async (employeeId, month, year) => {
           employeeId: new mongoose.Types.ObjectId(employeeId),
           checkDate: { $gte: startDate, $lt: endDate },
       });
-      console.log(sessions);
       let lateMinutes = 0;
       let extraMInutes = 0;
       let checkOutTime;
       let checkInTime;
-      let checkOutT;
+
 
       sessions.forEach(entry => {
         if( entry.checkOutTime == null){
           return;
           }else{
-            checkInTime = moment( convertTo24HourFormat(entry.checkOutTime), 'HH:mm');
+            checkInTime = moment( convertTo24HourFormat(entry.checkInTime), 'HH:mm');
             checkOutTime = moment(convertTo24HourFormat(entry.checkOutTime), 'HH:mm');
           }
           console.log(Math.abs(checkOutTime.diff(checkInTime, 'minutes')))
