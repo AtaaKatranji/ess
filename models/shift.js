@@ -20,8 +20,10 @@ const shiftSchema = new mongoose.Schema({
   },
   employees: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'UserModel',
+    default: []
   }],
+  
 }, {
   timestamps: true, // Adds createdAt and updatedAt fields
 });

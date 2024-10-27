@@ -15,7 +15,7 @@ exports.createShift = async (req, res) => {
 exports.getAllShifts = async (req, res) => {
     try {
       const shifts = await Shift.find().populate({
-        path: 'employees',
+        path: 'users',
         options: { strictPopulate: false }, // allows for an empty array on population
       });
       res.status(200).json(shifts);
