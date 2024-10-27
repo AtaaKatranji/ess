@@ -13,14 +13,16 @@ exports.createShift = async (req, res) => {
 
 // Get all shifts
 exports.getAllShifts = async (req, res) => {
-  try {
-    const shifts = await Shift.find().populate('employees');
-    res.status(200).json(shifts);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching shifts', error });
-  }
-};
-
+    try {
+      const shifts = await Shift.find().populate({
+        path: 'employees',
+        options: { strictPopulate: false }, // allows for an empty array on population
+      });
+      res.status(200).json(shifts);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching shifts', error });
+    }
+  };
 // Get a single shift by ID
 exports.getShiftById = async (req, res) => {
   try {
