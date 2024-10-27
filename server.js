@@ -35,6 +35,7 @@ const test = require("./routes/user.routes");
 const todo = require("./routes/toDo_apis");
 const institutionRoutes = require('./routes/institutionRoutes');
 const overView = require('./routes/overViewRoutes');
+const shiftRoute = require("./routes/shiftRoutes")
 const errorHandler = require('./middleware/errorHandler');
 
 app.use('/adm/admins', admins);
@@ -44,6 +45,7 @@ app.use('/users', userRoutes);
 app.use('/checks', checksRoutes);
 app.use('/todolist', todo);
 app.use('/ins', institutionRoutes);
+app.use('/shift', shiftRoute);
 
 // Error handler (must come after all routes)
 //app.use(errorHandler);

@@ -1,27 +1,29 @@
-const db = require('../config/db');
-const bcrypt = require("bcrypt");
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
 
+const shiftSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  startTime: {
+    type: String,
+    required: true,
+  },
+  endTime: {
+    type: String,
+    required: true,
+  },
+  days: {
+    type: [String],
+    required: true,
+    enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+  },
+  employees: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Employee',
+  }],
+}, {
+  timestamps: true, // Adds createdAt and updatedAt fields
+});
 
-// Define schema for Employees table
-const shiftSchema = new Schema({
-    name: { type: String, required: true },
-    start: {type: String, required: true },
-    end:{ type: String, required: true },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now
-    },
-  });
-
-
-
-
-  
-const ShiftModel = mongoose.model('user',shiftSchema);
-module.exports = ShiftModel;
+module.exports = mongoose.model('Shift', shiftSchema);
