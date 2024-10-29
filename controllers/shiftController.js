@@ -53,6 +53,7 @@ exports.getShiftById = async (req, res) => {
 exports.updateShift = async (req, res) => {
   try {
     const shift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    console.log(shift)
     if (!shift) {
       return res.status(404).json({ message: 'Shift not found' });
     }
