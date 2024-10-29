@@ -90,6 +90,61 @@ exports.assignEmployee = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// Remove employee from shift
+exports.removeEmployeeFromShift = async (req, res) => {
+  try {
+    const { shiftId } = req.params;
+    const { employeeId } = req.body;
+
+    // Find the shift by ID and remove the employeeId
+    const updatedShift = await Shift.findByIdAndUpdate(
+      shiftId,
+      { $pull: { employees: employeeId } }, // Assuming 'employees' is an array of employee IDs
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedShift) {
+      return res.status(404).json({ error: 'Shift not found' });
+    }
+
+    res.json(updatedShift);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+    
+// Move employee from one shift to another
+exports.moveEmployee = async (req, res) => {
+  try {
+    const { fromShiftId } = req.params;
+    const { toShiftId, employeeId } = req.body;
+
+    // Find the source shift and remove the employeeId
+    const fromShift = await Shift.findByIdAndUpdate(
+      fromShiftId,
+      { $pull: { employees: employeeId } }, // Remove employee from the source shift
+      { new: true }
+    );
+
+    // Find the destination shift and add the employeeId
+    const toShift = await Shift.findByIdAndUpdate(
+      toShiftId,
+      { $addToSet: { employees: employeeId } }, // Add employee to the destination shift
+      { new: true }
+    );
+
+    if (!fromShift || !toShift) {
+      return res.status(404).json({ error: 'One or both shifts not found' });
+    }
+
+    res.json(toShift); // Return the updated destination shift
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 
 // Delete a shift by ID
