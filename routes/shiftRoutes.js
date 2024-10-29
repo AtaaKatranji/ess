@@ -9,7 +9,7 @@ router.post('/', shiftController.createShift);
 router.get('/', shiftController.getAllShifts);
 
 // Get all Institution's shifts
-router.get('/Ins', shiftController.getInstitutionShifts);
+router.post('/Ins', shiftController.getInstitutionShifts);
 // Get a single shift by ID
 router.get('/:id', shiftController.getShiftById);
 
