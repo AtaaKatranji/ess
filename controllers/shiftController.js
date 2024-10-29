@@ -23,6 +23,19 @@ exports.getAllShifts = async (req, res) => {
       res.status(500).json({ message: 'Error fetching shifts', error });
     }
   };
+  // Get all institution's shifts
+exports.getInstitutionShifts = async (req, res) => {
+  const { institutionKey } = req.body;
+  try {
+    const shifts = await Shift.find({institutionKey}).populate({
+      path: 'users',
+      options: { strictPopulate: false }, // allows for an empty array on population
+    });
+    res.status(200).json(shifts);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching shifts', error });
+  }
+};
 // Get a single shift by ID
 exports.getShiftById = async (req, res) => {
   try {

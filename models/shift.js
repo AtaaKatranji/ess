@@ -23,6 +23,10 @@ const shiftSchema = new mongoose.Schema({
     ref: 'UserModel',
     default: []
   }],
+  institutionKey: {
+    type: String,
+    required:true
+  },
   
 }, {
   timestamps: true, // Adds createdAt and updatedAt fields
