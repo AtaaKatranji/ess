@@ -95,7 +95,7 @@ exports.removeEmployeeFromShift = async (req, res) => {
   try {
     const { shiftId } = req.params;
     const { employeeId } = req.body;
-
+    
     // Find the shift by ID and remove the employeeId
     const updatedShift = await Shift.findByIdAndUpdate(
       shiftId,
