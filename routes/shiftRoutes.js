@@ -14,7 +14,9 @@ router.post('/Ins', shiftController.getInstitutionShifts);
 router.get('/:id', shiftController.getShiftById);
 
 // Update a shift by ID
-router.put('/:id/assign', shiftController.updateShift);
+router.put('/:id', shiftController.updateShift);
+
+router.put('/:id/assign', shiftController.assignEmployee);
 
 // Delete a shift by ID
 router.delete('/:id', shiftController.deleteShift);

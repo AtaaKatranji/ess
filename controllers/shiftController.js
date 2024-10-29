@@ -63,6 +63,35 @@ exports.updateShift = async (req, res) => {
   }
 };
 
+exports.assignEmployee = async (req, res) => {
+  try {
+    const shiftId = req.params.id;
+    const { employeeId } = req.body;
+
+    // Find the shift by ID
+    const shift = await Shift.findById(shiftId);
+    if (!shift) {
+      return res.status(404).json({ message: 'Shift not found' });
+    }
+
+    // Check if the employee is already assigned to prevent duplicates
+    if (!shift.employees.includes(employeeId)) {
+      shift.employees.push(employeeId);
+    }
+
+    // Save the updated shift
+    
+    await shift.save();
+
+    // Send the updated shift data in the response
+    res.status(200).json(shift);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
 // Delete a shift by ID
 exports.deleteShift = async (req, res) => {
   try {
