@@ -4,6 +4,7 @@ const UserModel = require('../models/user.model');
 exports.createShift = async (req, res) => {
   try {
     const shift = new Shift(req.body);
+    
     await shift.save();
     res.status(201).json(shift);
   } catch (error) {
@@ -18,6 +19,8 @@ exports.getAllShifts = async (req, res) => {
         path: 'users',
         options: { strictPopulate: false }, // allows for an empty array on population
       });
+      
+  
       res.status(200).json(shifts);
     } catch (error) {
       res.status(500).json({ message: 'Error fetching shifts', error });
@@ -40,6 +43,7 @@ exports.getShiftById = async (req, res) => {
     if (!shift) {
       return res.status(404).json({ message: 'Shift not found' });
     }
+    await shift.populate('employees', 'name _id');
     res.status(200).json(shift);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching shift', error });
@@ -51,9 +55,11 @@ exports.updateShift = async (req, res) => {
   try {
     const shift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
     console.log(shift)
+    
     if (!shift) {
       return res.status(404).json({ message: 'Shift not found' });
     }
+    await shift.populate('employees', 'name _id');
     res.status(200).json(shift);
   } catch (error) {
     res.status(400).json({ message: 'Error updating shift', error });
@@ -105,7 +111,7 @@ exports.removeEmployeeFromShift = async (req, res) => {
     if (!updatedShift) {
       return res.status(404).json({ error: 'Shift not found' });
     }
-
+    await updatedShift.populate('employees', 'name _id');
     res.json(updatedShift);
   } catch (error) {
     console.error(error);
@@ -137,7 +143,7 @@ exports.moveEmployee = async (req, res) => {
     if (!fromShift || !toShift) {
       return res.status(404).json({ error: 'One or both shifts not found' });
     }
-
+    await toShift.populate('employees', 'name _id');
     res.json(toShift); // Return the updated destination shift
   } catch (error) {
     console.error(error);
