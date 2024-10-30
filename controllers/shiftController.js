@@ -53,7 +53,11 @@ exports.getShiftById = async (req, res) => {
 // Update a shift by ID
 exports.updateShift = async (req, res) => {
   try {
-    const shift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const id = req.params.id;
+    const  shiftBody  = req.body;
+    console.log(id,shiftBody);
+    
+    const shift = await Shift.findByIdAndUpdate(id, shiftBody, { new: true });
     console.log(shift)
     
     if (!shift) {
