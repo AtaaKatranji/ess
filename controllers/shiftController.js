@@ -95,6 +95,7 @@ exports.removeEmployeeFromShift = async (req, res) => {
   try {
     const { shiftId } = req.params;
     const { employeeId } = req.body;
+    console.log(shiftId,employeeId);
     
     // Find the shift by ID and remove the employeeId
     const updatedShift = await Shift.findByIdAndUpdate(
@@ -150,6 +151,8 @@ exports.moveEmployee = async (req, res) => {
 // Delete a shift by ID
 exports.deleteShift = async (req, res) => {
   try {
+    console.log(req.params.id);
+    
     const shift = await Shift.findByIdAndDelete(req.params.id);
     if (!shift) {
       return res.status(404).json({ message: 'Shift not found' });
