@@ -1,5 +1,5 @@
 const Shift = require('../models/shift');
-
+const UserModel = require('../models/user.model');
 // Create a new shift
 exports.createShift = async (req, res) => {
   try {
@@ -74,16 +74,17 @@ exports.assignEmployee = async (req, res) => {
       return res.status(404).json({ message: 'Shift not found' });
     }
 
-    // Check if the employee is already assigned to prevent duplicates
+    // Check if the employee is already assigned
     if (!shift.employees.includes(employeeId)) {
       shift.employees.push(employeeId);
     }
 
     // Save the updated shift
-    
     await shift.save();
 
-    // Send the updated shift data in the response
+    // Populate employee details for response
+    await shift.populate('employees', 'name _id'); // Populate only `name` and `_id` fields from Employee
+
     res.status(200).json(shift);
   } catch (error) {
     console.error(error);

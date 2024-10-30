@@ -20,7 +20,7 @@ const shiftSchema = new mongoose.Schema({
   },
   employees: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'UserModel',
+    ref: 'user',
     default: []
   }],
   institutionKey: {
