@@ -19,6 +19,7 @@ router.put('/:id', shiftController.updateShift);
 router.put('/:id/assign', shiftController.assignEmployee);
 router.post('/:shiftId/remove', shiftController.removeEmployeeFromShift);
 router.post('/:fromShiftId/move', shiftController.moveEmployee);
+router.post('/time', shiftController.getTimeShift);
 
 // Delete a shift by ID
 router.delete('/:id', shiftController.deleteShift);

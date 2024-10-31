@@ -170,3 +170,37 @@ exports.deleteShift = async (req, res) => {
     res.status(500).json({ message: 'Error deleting shift', error });
   }
 };
+
+
+// Fetch Time of the shift
+exports.getTimeShift = async (req, res) => {
+  const {employeeId} = req.body;
+  try {
+    console.log(employeeId);
+    
+    // Find shifts where the employee's ID is in the employees array
+    const shifts = await Shift.find({ employees: employeeId })
+      .select('name startTime endTime days institutionKey')
+      .lean();
+    
+    res.status(200).json({ success: true, shifts });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Error fetching shifts' });
+  }
+}
+// exports.getTimeShift = async (req, res) => {
+//   const {employeeId} = req.body;
+//   try {
+//     console.log(employeeId);
+    
+//     // Find shifts where the employee's ID is in the employees array
+//     const shifts = await Shift.find({ employees: employeeId })
+//       .select('name startTime endTime days institutionKey')
+//       .lean();
+//     const startTime = shifts[0].startTime
+//     const endTime = shifts[0].endTime
+//     res.status(200).json({ success: true, startTime,endTime });
+//   } catch (error) {
+//     res.status(500).json({ success: false, error: 'Error fetching shifts' });
+//   }
+// }

@@ -153,6 +153,79 @@ const calculateTotalLateHours = async (employeeId, month, year) => {
       console.error('Error calculating Ex/La hours:', err);
   }
 };  
+//Time Shift 
+const calculateTimeShift = async (employeeId, month, year, shiftStart, shiftEnd) => {
+  let startDate = new Date(year, month - 1);
+  let endDate;
+  const now = new Date();
+  if (now.getFullYear() === year && now.getMonth() === month - 1) {
+      endDate = new Date(year, month - 1, now.getDate()); 
+  } else {
+      endDate = new Date(year, month, 1); 
+  }
+
+  try {
+      const sessions = await CheckInOut.find({
+          employeeId: new mongoose.Types.ObjectId(employeeId),
+          checkDate: { $gte: startDate, $lt: endDate },
+      });
+
+      // Initialize counters
+      let lateMinutes = 0;
+      let earlyLeaveMinutes = 0;
+      let earlyArrivalMinutes = 0;
+      let extraAttendanceMinutes = 0;
+
+      sessions.forEach(entry => {
+        if (entry.checkOutTime == null) {
+          return;
+        } else {
+          // Convert check-in/out times to moment objects
+          const checkInTime = moment(convertTo24HourFormat(entry.checkInTime), 'HH:mm');
+          const checkOutTime = moment(convertTo24HourFormat(entry.checkOutTime), 'HH:mm');
+
+          // Convert shift start/end times to moment objects
+          const shiftStartTime = moment(shiftStart, 'HH:mm');
+          const shiftEndTime = moment(shiftEnd, 'HH:mm');
+
+          // Calculate late arrival and early arrival
+          if (checkInTime.isAfter(shiftStartTime)) {
+            lateMinutes += checkInTime.diff(shiftStartTime, 'minutes');
+          } else {
+            earlyArrivalMinutes += shiftStartTime.diff(checkInTime, 'minutes');
+          }
+
+          // Calculate early leave and extra attendance
+          if (checkOutTime.isBefore(shiftEndTime)) {
+            earlyLeaveMinutes += shiftEndTime.diff(checkOutTime, 'minutes');
+          } else {
+            extraAttendanceMinutes += checkOutTime.diff(shiftEndTime, 'minutes');
+          }
+        }
+      });
+
+      // Convert total minutes to hours with two decimal points
+      const totalLateHours = (lateMinutes / 60).toFixed(2);
+      const totalEarlyLeaveHours = (earlyLeaveMinutes / 60).toFixed(2);
+      const totalEarlyArrivalHours = (earlyArrivalMinutes / 60).toFixed(2);
+      const totalExtraAttendanceHours = (extraAttendanceMinutes / 60).toFixed(2);
+
+      console.log(`For employee ${employeeId} in month ${month}:`);
+      console.log(`- Late Hours: ${totalLateHours}`);
+      console.log(`- Early Leave Hours: ${totalEarlyLeaveHours}`);
+      console.log(`- Early Arrival Hours: ${totalEarlyArrivalHours}`);
+      console.log(`- Extra Attendance Hours: ${totalExtraAttendanceHours}`);
+
+      return {
+        lateHours: totalLateHours,
+        earlyLeaveHours: totalEarlyLeaveHours,
+        earlyArrivalHours: totalEarlyArrivalHours,
+        extraAttendanceHours: totalExtraAttendanceHours
+      };
+  } catch (err) {
+      console.error('Error calculating time shifts:', err);
+  }
+};
 
 //---------Main Functions------------
 // Check In
@@ -341,6 +414,17 @@ exports.getTotalLateHours = async (req, res) => {
   [totalExtraHours,totalLateHours] = await calculateTotalLateHours(employeeId,month,year);
   res.status(200).json({ status: true, success: "sendData", totalExtr: totalExtraHours,totalLate:totalLateHours });
 };
+//Time Shift
+exports.timeShift = async (req, res) => {
+  const employeeId  = req.body['userId'];
+  const month = getMonthNumber(req.body['month']);
+  const year = req.body['year'];
+  const start = req.body['startTime'];
+  const end = req.body['endTime'];
+  [totalExtraHours,totalLateHours] = await calculateTimeShift(employeeId,month,year,start,end);
+  res.status(200).json({ status: true, success: "sendData", totalExtr: totalExtraHours,totalLate:totalLateHours });
+};
+
 // Current Check
 exports.currentCheck = async(req, res)=> {
   const {userId, date}=req.body;
