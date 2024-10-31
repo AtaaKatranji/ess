@@ -421,8 +421,8 @@ exports.timeShift = async (req, res) => {
   const year = req.body['year'];
   const start = req.body['startTime'];
   const end = req.body['endTime'];
-  [totalExtraHours,totalLateHours] = await calculateTimeShift(employeeId,month,year,start,end);
-  res.status(200).json({ status: true, success: "sendData", totalExtr: totalExtraHours,totalLate:totalLateHours });
+  const data = await calculateTimeShift(employeeId,month,year,start,end);
+  res.status(200).json({ status: true, success: "sendData", data });
 };
 
 // Current Check
