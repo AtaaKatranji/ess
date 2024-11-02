@@ -376,6 +376,39 @@ exports.getMonthlyHistory = async (req, res) => {
     res.status(500).json({ error: 'Error fetching history' });
   }
 };
+// Monthly History
+exports.getMonthlyHistoryFront = async (req, res) => {
+  // api to retern history of this month 
+ const { employeeId, startDate, endDate } = req.body;
+ 
+ console.log("Id "+ employeeId);
+
+ try {
+   let employeeObjectId = new mongoose.Types.ObjectId(employeeId);
+   // Get the current date and calculate the start and end of the month
+   console.log("Id obj "+ employeeObjectId);
+   //const now = moment.tz('Asia/Damascus'); // Current time in the employee's local time zone
+   
+   // Find records for the employee within the current month (in UTC)
+    tempA = await CheckInOut.find({
+     employeeId: employeeObjectId,
+     checkDate: { $gte: startDate, $lte: endDate }
+   });
+    // Convert the check-in and check-out times from UTC to local time zone
+   // const convertedRecords = tempA.map(record => ({
+   //   ...record.toObject(), // Convert the Mongoose document to a plain JS object
+   //   checkInTime: moment.utc(record.checkInTime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss'), // Convert to local time
+   //   checkOutTime: record.checkOutTime ? moment.utc(record.checkOutTime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss') : null, // Convert if exists
+   // }));
+
+   // Respond with the filtered and converted records
+   res.status(200).json({ message: 'successfully',  tempA });
+
+ } catch (err) {
+   console.error('Error fetching history:', err);
+   res.status(500).json({ error: 'Error fetching history' });
+ }
+};
 // Last Month History
 exports.getLastMonthlyHistory = async (req, res) => {
   const { employeeId, timeZone } = req.body;
