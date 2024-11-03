@@ -407,7 +407,7 @@ async function fetchMonthlyHistory(employeeId, month)  {
     }
 
     // Sort if historyData is indeed an array
-    const sortedHistory = historyData.sort((a, b) => new Date(a.checkDate) - new Date(b.checkDate));
+    const sortedHistory = historyData.sort((a, b) => new Date(b.checkDate) - new Date(a.checkDate));
 
     return { success: true, data: sortedHistory };
   } catch (error) {
