@@ -1,6 +1,7 @@
 const {CheckInOut} = require('../models/schmeaESS');
 const moment = require('moment-timezone'); 
 const mongoose = require('mongoose');
+const { fetchShifts } = require('../controllers/shiftController')
 
 //---------- Helper Functions ----------
 const  getMonthNumber = (month) => { 
@@ -63,7 +64,18 @@ function checkTimeFormat12(time) {
       return 'Invalid time format';
   }
 }
+//daily hours 
+// Helper function to calculate daily hours
+function calculateDailyHours(checkIn, checkOut) {
+  let totalMinutes = 0;
+  const checkInTime = moment(convertTo24HourFormat(checkIn), 'HH:mm');
+  const checkOutTime = moment(convertTo24HourFormat(checkOut), 'HH:mm');
 
+  // Calculate total minutes worked
+  totalMinutes += Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
+  const totalHours = (totalMinutes / 60).toFixed(2);
+  return totalHours;
+}
 
 
 // Calculate Total Hours
@@ -377,37 +389,35 @@ exports.getMonthlyHistory = async (req, res) => {
   }
 };
 // Monthly History
-exports.getMonthlyHistoryFront = async (req, res) => {
-  // api to retern history of this month 
- const { employeeId, startDate, endDate } = req.body;
- 
- console.log("Id "+ employeeId);
+async function fetchMonthlyHistory(employeeId, month)  {
+  console.log("get in fetch monyjly history")
+  let date = moment(month);
+  const startDate = date.startOf('month').toDate(); // Start of month in UTC
+  const endDate = date.endOf('month').toDate();     // End of month in UTC
+  
+  try {
+    let employeeObjectId = new mongoose.Types.ObjectId(employeeId);
+    const tempA = await CheckInOut.find({
+      employeeId: employeeObjectId,
+      checkDate: { $gte: startDate, $lte: endDate }
+    });
 
- try {
-   let employeeObjectId = new mongoose.Types.ObjectId(employeeId);
-   // Get the current date and calculate the start and end of the month
-   console.log("Id obj "+ employeeObjectId);
-   //const now = moment.tz('Asia/Damascus'); // Current time in the employee's local time zone
-   
-   // Find records for the employee within the current month (in UTC)
-    tempA = await CheckInOut.find({
-     employeeId: employeeObjectId,
-     checkDate: { $gte: startDate, $lte: endDate }
-   });
-    // Convert the check-in and check-out times from UTC to local time zone
-   // const convertedRecords = tempA.map(record => ({
-   //   ...record.toObject(), // Convert the Mongoose document to a plain JS object
-   //   checkInTime: moment.utc(record.checkInTime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss'), // Convert to local time
-   //   checkOutTime: record.checkOutTime ? moment.utc(record.checkOutTime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss') : null, // Convert if exists
-   // }));
+    return { success: true, data: tempA };
+  } catch (error) {
+    console.error('Error fetching monthly history:', error);
+    return { success: false, error: 'Error fetching monthly history' };
+  }
+}
+exports.getMonthlyHistoryMonth = async (req, res) => {
+  const { employeeId, month } = req.body;
+  
+  const historyResponse = await fetchMonthlyHistory(employeeId, month);
 
-   // Respond with the filtered and converted records
-   res.status(200).json({ message: 'successfully',  tempA });
-
- } catch (err) {
-   console.error('Error fetching history:', err);
-   res.status(500).json({ error: 'Error fetching history' });
- }
+  if (historyResponse.success) {
+    res.status(200).json({ message: 'successfully', data: historyResponse.data });
+  } else {
+    res.status(500).json({ error: historyResponse.error });
+  }
 };
 // Last Month History
 exports.getLastMonthlyHistory = async (req, res) => {
@@ -477,5 +487,139 @@ exports.currentCheck = async(req, res)=> {
   }
   };
 
+//summry data
+const calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, shiftEnd) => {
+  //date: Tue Oct 29 2024 00:00:00 GMT+0300 (GMT+03:00)
+  // const [year, month, day] = date.split('/').map(Number);
+  // let startDate = new Date(year, month - 1);
+  // let endDate;
+  // const now = new Date();
+  // console.log(month)
+  // if (now.getFullYear() === year && now.getMonth() === month - 1) {
+  //     endDate = new Date(year, month - 1, now.getDate());
+  // } else {
+  //     endDate = new Date(year, month, 1);
+  // }
+  const date = moment(new Date(dateString));
+
+// Start and end of the month
+const startDate = date.startOf('month').format("YYYY-MM-DD");
+const endDate = date.endOf('month').format("YYYY-MM-DD");
+
+  try {
+      const sessions = await CheckInOut.find({
+          employeeId: new mongoose.Types.ObjectId(employeeId),
+          checkDate: { $gte: startDate, $lt: endDate },
+      });
+
+      let totalMinutes = 0;
+      let lateMinutes = 0;
+      let earlyLeaveMinutes = 0;
+      let earlyArrivalMinutes = 0;
+      let extraAttendanceMinutes = 0;
+
+      sessions.forEach(entry => {
+          if (entry.checkOutTime == null) {
+              return;
+          } else {
+              const checkInTime = moment(convertTo24HourFormat(entry.checkInTime), 'HH:mm');
+              const checkOutTime = moment(convertTo24HourFormat(entry.checkOutTime), 'HH:mm');
+
+              const shiftStartTime = moment(shiftStart, 'HH:mm');
+              const shiftEndTime = moment(shiftEnd, 'HH:mm');
+
+              // Calculate total minutes worked
+              totalMinutes += Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
+
+              // Calculate late arrival and early arrival
+              if (checkInTime.isAfter(shiftStartTime)) {
+                  lateMinutes += checkInTime.diff(shiftStartTime, 'minutes');
+              } else {
+                  earlyArrivalMinutes += shiftStartTime.diff(checkInTime, 'minutes');
+              }
+
+              // Calculate early leave and extra attendance
+              if (checkOutTime.isBefore(shiftEndTime)) {
+                  earlyLeaveMinutes += shiftEndTime.diff(checkOutTime, 'minutes');
+              } else {
+                  extraAttendanceMinutes += checkOutTime.diff(shiftEndTime, 'minutes');
+              }
+          }
+      });
+
+      const totalHours = (totalMinutes / 60).toFixed(2);
+      const totalLateHours = (lateMinutes / 60).toFixed(2);
+      const totalEarlyLeaveHours = (earlyLeaveMinutes / 60).toFixed(2);
+      const totalEarlyArrivalHours = (earlyArrivalMinutes / 60).toFixed(2);
+      const totalExtraAttendanceHours = (extraAttendanceMinutes / 60).toFixed(2);
+
+     
+      return {
+          totalHours,
+          lateHours: totalLateHours,
+          earlyLeaveHours: totalEarlyLeaveHours,
+          earlyArrivalHours: totalEarlyArrivalHours,
+          extraAttendanceHours: totalExtraAttendanceHours
+      };
+  } catch (err) {
+      console.error('Error calculating attendance metrics:', err);
+  }
+};
+
+exports.summry = async (req, res) => {
+  const { employeeId, date } = req.body;
+
+  try {
+    // Use fetchShifts directly to get the shift data
+    const shiftResponse = await fetchShifts(employeeId);
+
+    // Check if shifts were successfully fetched and are available
+    if (!shiftResponse.success || !shiftResponse.shifts || shiftResponse.shifts.length === 0) {
+      return res.status(404).json({ message: 'No shifts found for the employee' });
+    }
+
+    const { startTime: shiftStart, endTime: shiftEnd } = shiftResponse.shifts[0];
+    console.log("p ",shiftStart)
+    console.log("p1 ",shiftEnd)
+    // Fetch attendance data
+    const attendanceData = await calculateAttendanceMetrics(employeeId, date, shiftStart, shiftEnd);
+    console.log("a ",attendanceData)
+    // Fetch check-in and check-out history
+    const historyResponse = await fetchMonthlyHistory(employeeId, date);
+    console.log(historyResponse)
+    
+    if (historyResponse === null) {
+      return res.json({ message: historyResponse.error || 'Error fetching history data' });
+    }
+    // Sort the history data by date
+    const sortedHistoryData = historyResponse.data.sort((a, b) => 
+      new Date(a.checkDate) - new Date(b.checkDate)
+    );
+
+    // Combine data as needed
+    const combinedData = {
+      summary: {
+        ...attendanceData,
+        totalDays: sortedHistoryData.length
+      },
+      details: sortedHistoryData.map(entry => ({
+        date: entry.checkDate,
+        checkIn: entry.checkInTime,
+        checkOut: entry.checkOutTime,
+        // You can calculate daily hours here if needed
+        dailyHours: calculateDailyHours(entry.checkInTime, entry.checkOutTime)
+      }))
+    };
+
+    res.json(combinedData);
+  } catch (error) {
+    console.error('Detailed error:', error);
+    res.status(500).json({ 
+      message: 'Error fetching monthly summary data', 
+      error: error.message || 'Unknown error',
+      stack: error.stack
+    });
+  }
+};
 
   

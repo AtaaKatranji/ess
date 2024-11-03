@@ -10,9 +10,10 @@ router.post('/calculate-lateHours', checkInOutController.getTotalLateHours);
 router.put('/update', checkInOutController.update);
 router.post('/getAllHistory', checkInOutController.getAllHistory);
 router.post('/monthlyHistory', checkInOutController.getMonthlyHistory);
-router.post('/monthlyHistoryFront', checkInOutController.getMonthlyHistoryFront);
+router.post('/monthlyHistoryFront', checkInOutController.getMonthlyHistoryMonth);
 router.post('/lastmonthlyHistory', checkInOutController.getLastMonthlyHistory);
 router.post('/checkcurrentday', checkInOutController.currentCheck);
 router.post('/timeShift', checkInOutController.timeShift);
+router.post('/summry', checkInOutController.summry);
 
 module.exports = router;

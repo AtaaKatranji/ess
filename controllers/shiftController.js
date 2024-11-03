@@ -173,21 +173,45 @@ exports.deleteShift = async (req, res) => {
 
 
 // Fetch Time of the shift
-exports.getTimeShift = async (req, res) => {
-  const {employeeId} = req.body;
+// Helper function to fetch shifts for an employee
+async function fetchShifts(employeeId) {
   try {
-    console.log(employeeId);
-    
-    // Find shifts where the employee's ID is in the employees array
+    // Fetch shifts where the employee's ID is in the employees array
     const shifts = await Shift.find({ employees: employeeId })
       .select('name startTime endTime days institutionKey')
       .lean();
     
-    res.status(200).json({ success: true, shifts });
+    return { success: true, shifts };
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Error fetching shifts' });
+    console.error('Error fetching shifts:', error);
+    return { success: false, error: 'Error fetching shifts' };
   }
-}
+};
+exports.fetchShifts= async (employeeId) => {
+  try {
+    // Fetch shifts where the employee's ID is in the employees array
+    const shifts = await Shift.find({ employees: employeeId })
+      .select('name startTime endTime days institutionKey')
+      .lean();
+    
+    return { success: true, shifts };
+  } catch (error) {
+    console.error('Error fetching shifts:', error);
+    return { success: false, error: 'Error fetching shifts' };
+  }
+};
+
+exports.getTimeShift = async (req, res) => {
+  const { employeeId } = req.body;
+
+  const shiftResponse = await fetchShifts(employeeId);
+  if (shiftResponse.success) {
+    res.status(200).json({ success: true, shifts: shiftResponse.shifts });
+  } else {
+    res.status(500).json({ success: false, error: shiftResponse.error });
+  }
+};
+
 // exports.getTimeShift = async (req, res) => {
 //   const {employeeId} = req.body;
 //   try {
