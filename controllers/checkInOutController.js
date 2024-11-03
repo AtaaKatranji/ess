@@ -397,12 +397,19 @@ async function fetchMonthlyHistory(employeeId, month)  {
   
   try {
     let employeeObjectId = new mongoose.Types.ObjectId(employeeId);
-    const tempA = await CheckInOut.find({
+    const historyData = await CheckInOut.find({
       employeeId: employeeObjectId,
       checkDate: { $gte: startDate, $lte: endDate }
     });
 
-    return { success: true, data: tempA };
+    if (!Array.isArray(historyData)) {
+      throw new Error("Expected historyData to be an array, but got a different type");
+    }
+
+    // Sort if historyData is indeed an array
+    const sortedHistory = historyData.sort((a, b) => new Date(a.checkDate) - new Date(b.checkDate));
+
+    return { success: true, data: sortedHistory };
   } catch (error) {
     console.error('Error fetching monthly history:', error);
     return { success: false, error: 'Error fetching monthly history' };
