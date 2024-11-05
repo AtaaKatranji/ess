@@ -79,18 +79,16 @@ function calculateDailyHours(checkIn, checkOut) {
 
 
 // Calculate Total Hours
-const calculateTotalHours = async (employeeId, month, year) => {
-  let startDate = new Date(year, month - 1);
-  let endDate;
-  const now = new Date();
-  if (now.getFullYear() === year && now.getMonth() === month - 1) {
-      // If the current date is in the specified month and year
-      endDate = new Date(year, month - 1, now.getDate()); // Start of today
-  } else {
-      // Otherwise, set endDate to the start of the next month
-      endDate = new Date(year, month, 1);
-  }
+const calculateTotalHours = async (employeeId, dateString) => {
+  const date = moment(new Date(dateString));
+
+  // Start and end of the month
+  const startDate = date.startOf('month').format("YYYY-MM-DD");
+  const endDate = date.endOf('month').format("YYYY-MM-DD");
+  
+  
   try {
+    console.log(startDate,endDate)
       const sessions = await CheckInOut.find({
           employeeId: new mongoose.Types.ObjectId(employeeId),
           checkDate: { $gte: startDate, $lt: endDate },
@@ -99,20 +97,22 @@ const calculateTotalHours = async (employeeId, month, year) => {
       let totalMinutes = 0;
       let checkOutTime;
       let checkInTime;
+      let checkInT;
       let checkOutT;
 
       sessions.forEach(entry => {
         if( entry.checkOutTime == null){
           return;
           }else{
-            checkInTime = moment(entry.checkInTime, 'HH:mm');
+            checkInT=convertTo24HourFormat(entry.checkInTime);
+            checkInTime = moment(checkInT, 'HH:mm');
             checkOutT= convertTo24HourFormat(entry.checkOutTime);
             checkOutTime = moment(checkOutT, 'HH:mm');
           }
           totalMinutes += Math.abs(checkOutTime.diff(checkInTime, 'minutes'));
       });
       const totalHours = (totalMinutes / 60).toFixed(2);
-      console.log(`Total Hours worked by employee ${employeeId} in month:${month} ${totalHours}`);
+      
       return { totalHours, totalMinutes };
   } catch (err) {
       console.error('Error calculating total hours:', err);
@@ -452,9 +452,9 @@ exports.getLastMonthlyHistory = async (req, res) => {
 // Total Hours
 exports.getTotalHours = async (req, res) => {
     const employeeId  = req.body['userId'];
-    const month = getMonthNumber(req.body['month']);
-    const year = req.body['year'];
-    total = await calculateTotalHours(employeeId,month,year);
+    const month = req.body['month'];
+
+    total = await calculateTotalHours(employeeId,month);
     res.status(200).json({ status: true, success: "sendData", total: total });
 };
 exports.getTotalLateHours = async (req, res) => {
@@ -514,6 +514,7 @@ const startDate = date.startOf('month').format("YYYY-MM-DD");
 const endDate = date.endOf('month').format("YYYY-MM-DD");
 
   try {
+    console.log(startDate,endDate)
       const sessions = await CheckInOut.find({
           employeeId: new mongoose.Types.ObjectId(employeeId),
           checkDate: { $gte: startDate, $lt: endDate },
