@@ -68,6 +68,9 @@ function checkTimeFormat12(time) {
 // Helper function to calculate daily hours
 function calculateDailyHours(checkIn, checkOut) {
   let totalMinutes = 0;
+  if( checkOut == null){
+    return;
+    }else{
   const checkInTime = moment(convertTo24HourFormat(checkIn), 'HH:mm');
   const checkOutTime = moment(convertTo24HourFormat(checkOut), 'HH:mm');
 
@@ -76,7 +79,7 @@ function calculateDailyHours(checkIn, checkOut) {
   const totalHours = (totalMinutes / 60).toFixed(2);
   return totalHours;
 }
-
+}
 
 // Calculate Total Hours
 const calculateTotalHours = async (employeeId, dateString) => {
@@ -527,6 +530,7 @@ const endDate = date.endOf('month').format("YYYY-MM-DD");
       let extraAttendanceMinutes = 0;
 
       sessions.forEach(entry => {
+        
           if (entry.checkOutTime == null) {
               return;
           } else {
