@@ -654,7 +654,7 @@ function calculateShiftDaysInMonth(month, shift) {
   return shiftDays;
 }
 // GET /api/attendance/monthly/:employeeId
-exports.summrySixMonth = async (req, res) => {
+exports.summryLastTwoMonth = async (req, res) => {
   try {
     const { employeeId } = req.params;
     
