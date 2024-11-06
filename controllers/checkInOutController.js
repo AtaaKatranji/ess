@@ -1,4 +1,5 @@
 const {CheckInOut} = require('../models/schmeaESS');
+const Shift = require('../models/shift');
 const moment = require('moment-timezone'); 
 const mongoose = require('mongoose');
 const { fetchShifts } = require('../controllers/shiftController')
@@ -87,8 +88,8 @@ const calculateTotalHours = async (employeeId, dateString) => {
 
   // Start and end of the month
   const startDate = date.startOf('month').format("YYYY-MM-DD");
-  const endDate = date.endOf('month').format("YYYY-MM-DD");
-  
+  // const endDate = date.endOf('month').format("YYYY-MM-DD");
+  const endDate = date.clone().add(1, 'month').startOf('month').format("YYYY-MM-DD");
   
   try {
     console.log(startDate,endDate)
@@ -634,4 +635,88 @@ exports.summry = async (req, res) => {
   }
 };
 
-  
+function calculateShiftDaysInMonth(month, shift) {
+  const [monthName, year] = month.split(' ');
+  const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  let shiftDays = [];
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    // const date = new Date(Date.UTC(2024, 8, 1));
+    const date = new Date(Date.UTC(year, monthIndex, day));
+    const dayOfWeek = date.toLocaleString('en-US', { weekday: 'long' });
+    if (shift.days.includes(dayOfWeek)) {
+
+      shiftDays.push(date);
+    }
+  }
+
+  return shiftDays;
+}
+// GET /api/attendance/monthly/:employeeId
+exports.summrySixMonth = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    
+    let monthlyAttendance = {};
+
+    // Fetch all shifts associated with the employee
+    const shifts = await Shift.find({ employees: employeeId });
+    console.log(shifts)
+    // Calculate last Two months dynamically
+    const lastTwoMonths = Array.from({ length: 2 }, (_, i) => 
+      moment().subtract(i + 1, 'months').format('MMMM YYYY')
+  ).reverse();
+
+    for (const shift of shifts) {
+      for (const month of lastTwoMonths) {
+        // Initialize monthly summary if not yet created
+        if (!monthlyAttendance[month]) {
+          monthlyAttendance[month] = {
+            totalAttendance: 0,
+            absences: 0,
+            tardies: 0,
+          };
+        }
+
+        // Calculate the days of the month that align with the shift schedule
+        const shiftDaysInMonth = calculateShiftDaysInMonth(month, shift);
+        
+        for (const day of shiftDaysInMonth) {
+          // Find a check-in for the specific day
+          const checkInRecord = await CheckInOut.findOne({
+            employeeId,
+            checkDate: day,
+          });
+          
+          if (checkInRecord) {
+
+            const shiftStartTime = shift.startTime
+            const checkInTime =  convertTo24HourFormat(checkInRecord.checkInTime) 
+            
+            
+            const checkInT = moment(checkInTime, 'HH:mm');
+            const checkSInT = moment(shiftStartTime, 'HH:mm');
+            
+            // Calculate tardies
+            if (checkInT.diff(checkSInT, 'minutes') > 5 ) {
+              monthlyAttendance[month].tardies++;
+            } else {
+              monthlyAttendance[month].totalAttendance++;
+            }
+          } else {
+            monthlyAttendance[month].absences++;
+          }
+        }
+      }
+    }
+
+    res.json({
+      employeeId,
+      monthlyAttendance
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching monthly attendance data' });
+  }
+};
