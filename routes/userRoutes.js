@@ -26,35 +26,3 @@
 //     }
 //   });
 //   module.exports = router;
-  // routes/leaveRoutes.js
-const express = require('express');
-const Leave = require('../models/leaves');
-const { io } = require('../server'); // Import the `io` instance from your server
-
-const router = express.Router();
-
-router.post('/leave', async (req, res) => {
-  try {
-    const { employeeId, startDate, endDate, type, reason } = req.body;
-
-    // Create a new leave request
-    const leaveRequest = new Leave({
-      employeeId,
-      startDate,
-      endDate,
-      type,
-      reason,
-    });
-
-    await leaveRequest.save();
-    
-    // Emit the new leave request event to all connected clients
-    io.emit('newLeaveRequest', leaveRequest);
-    
-    res.status(201).json({ message: 'Leave request submitted successfully', leaveRequest });
-  } catch (error) {
-    res.status(500).json({ message: 'Error submitting leave request', error: error.message });
-  }
-});
-
-module.exports = router;
