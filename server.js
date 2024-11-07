@@ -1,7 +1,7 @@
 const express = require("express");
-const { Employee } = require("./models/schmeaESS");
-
-
+const Leave = require('./models/leaves');
+const http = require('http');
+const socketIo = require('socket.io');
 require("./config/db")
 const cors = require('cors');
 const app = express();
@@ -27,6 +27,23 @@ const cookieParser = require('cookie-parser');
 
 // Use the cookieParser middleware
 app.use(cookieParser());
+const port = process.env.PORT || 9000;
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: '*', // Allow requests from any origin
+    methods: ['GET', 'POST']
+  }
+});
+// Listen for WebSocket connections
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+  });
+});
+module.exports = { app, io };
 const admins = require('./routes/adminRoutes')
 const userRoutes = require('./routes/user');
 // const checksRoutes = require('./routes/apis');
@@ -35,7 +52,8 @@ const test = require("./routes/user.routes");
 const todo = require("./routes/toDo_apis");
 const institutionRoutes = require('./routes/institutionRoutes');
 const overView = require('./routes/overViewRoutes');
-const shiftRoute = require("./routes/shiftRoutes")
+const shiftRoute = require("./routes/shiftRoutes");
+const leavesRoute = require("./routes/leavesRoutes")
 const errorHandler = require('./middleware/errorHandler');
 
 app.use('/adm/admins', admins);
@@ -46,11 +64,16 @@ app.use('/checks', checksRoutes);
 app.use('/todolist', todo);
 app.use('/ins', institutionRoutes);
 app.use('/shift', shiftRoute);
+app.use('/leaves', leavesRoute);
 
 // Error handler (must come after all routes)
 //app.use(errorHandler);
 
-const port = process.env.PORT || 9000;
+
+// Export the io instance
+
+
+
 
 app.listen(port,process.env.SERVER_IP, () => {
   console.log(`Server running at  ${port}/`);
@@ -68,4 +91,25 @@ app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.sendStatus(200); // Send a success status for the preflight request
+});
+
+app.post('/leave', async (req, res) => {
+  try {
+    const { employeeId, startDate, endDate, type, reason } = req.body;
+
+    // Create a new leave request
+    const leaveRequest = new Leave({
+      employeeId,
+      startDate,
+      endDate,
+      type,
+      reason,
+    });
+
+    await leaveRequest.save();
+    io.emit('newLeaveRequest', leaveRequest);
+    res.status(201).json({ message: 'Leave request submitted successfully', leaveRequest });
+  } catch (error) {
+    res.status(500).json({ message: 'Error submitting leave request', error: error.message });
+  }
 });
