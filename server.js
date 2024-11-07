@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
   });
 });
 
-module.exports = { app, io };
+module.exports = { io };
 
 
 
