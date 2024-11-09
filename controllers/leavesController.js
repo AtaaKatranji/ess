@@ -1,27 +1,47 @@
 // leaveController.js
 const Leave = require('../models/leaves');
-const { io } = require('../server');
-// Create a new leave request
-const { beamsClient, pusher } = require('../service-worker');
+const Subscription = require('../models/Subscription');
 
 exports.createLeave = async (req, res) => {
     try {
         const leaveRequest = new Leave(req.body);
-        await leaveRequest.save();
+        await leaveRequest.save()
+        // Prepare the push notification payload
+        
+
+        // Get the admin's push subscription object from your database
+        const subscriptions = await Subscription.find({ role: 'admin' });
+
+
+       // Send push notification to each admin
+       subscriptions.forEach(async (subscription) => {
+        const pushPayload = JSON.stringify({
+            title: 'New Leave Request',
+            message: `A new leave request has been submitted by ${leaveRequest.user}`,
+            url: `/leave-requests/${leaveRequest._id}`, // URL to view the leave request
+        });
+
+        try {
+            // Send the push notification
+            await webPush.sendNotification(subscription, pushPayload);
+        } catch (error) {
+            console.error('Error sending push notification', error);
+        }
+    });
 
         // Emit the real-time event using Pusher Channels
-        pusher.trigger('leave-channel', 'newLeaveRequest', leaveRequest);
+        // pusher.trigger('leave-channel', 'newLeaveRequest', leaveRequest);
 
-        // Send a push notification using Pusher Beams
-        beamsClient.publishToInterests(['admin-notifications'], {
-            web: {
-                notification: {
-                    title: 'New Leave Request',
-                    body: `A new leave request has been created.`,
-                    deep_link: 'https://your-app-url.com/notifications'
-                }
-            }
-        });
+        // // Send a push notification using Pusher Beams
+        // beamsClient.publishToInterests(['admin-notifications'], {
+        //     web: {
+        //         notification: {
+        //             title: 'New Leave Request',
+        //             body: `A new leave request has been created.`,
+        //             deep_link: `https://ess-admin-lime.vercel.app/notification`
+        //         }
+        //     }
+        // });
 
         res.status(201).json({ message: 'Leave request created successfully', leaveRequest });
     } catch (error) {

@@ -4,7 +4,7 @@ const express = require("express");
 require("./config/db")
 const cors = require('cors');
 const app = express();
-const {pusher} = require('./service-worker')
+// const {pusher} = require('./webpush.config')
 // CORS options to allow all necessary headers and credentials
 const corsOptions = {
   origin: 'https://ess-admin-lime.vercel.app', // Allow only your frontend domain
@@ -51,7 +51,8 @@ const todo = require("./routes/toDo_apis");
 const institutionRoutes = require('./routes/institutionRoutes');
 const overView = require('./routes/overViewRoutes');
 const shiftRoute = require("./routes/shiftRoutes");
-const leavesRoute = require("./routes/leavesRoutes")
+const leavesRoute = require("./routes/leavesRoutes");
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 app.use('/adm/admins', admins);
@@ -63,6 +64,7 @@ app.use('/todolist', todo);
 app.use('/ins', institutionRoutes);
 app.use('/shift', shiftRoute);
 app.use('/leaves', leavesRoute);
+app.use('/Noti', subscriptionRoutes);
 
 
 app.listen(port,process.env.SERVER_IP, () => {
@@ -82,6 +84,6 @@ app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.sendStatus(200); // Send a success status for the preflight request
 });
-pusher.trigger("my-channel", "my-event", {
-  message: "hello world"
-});
+// pusher.trigger("my-channel", "my-event", {
+//   message: "hello world"
+// });
