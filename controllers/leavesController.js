@@ -2,14 +2,27 @@
 const Leave = require('../models/leaves');
 const { io } = require('../server');
 // Create a new leave request
+const { beamsClient, pusher } = require('../service-worker');
+
 exports.createLeave = async (req, res) => {
     try {
-
         const leaveRequest = new Leave(req.body);
-
         await leaveRequest.save();
-         // Emit the new leave request event to all connected clients
-        // io.emit('newLeaveRequest', leaveRequest);
+
+        // Emit the real-time event using Pusher Channels
+        pusher.trigger('leave-channel', 'newLeaveRequest', leaveRequest);
+
+        // Send a push notification using Pusher Beams
+        beamsClient.publishToInterests(['admin-notifications'], {
+            web: {
+                notification: {
+                    title: 'New Leave Request',
+                    body: `A new leave request has been created.`,
+                    deep_link: 'https://your-app-url.com/notifications'
+                }
+            }
+        });
+
         res.status(201).json({ message: 'Leave request created successfully', leaveRequest });
     } catch (error) {
         res.status(400).json({ message: 'Error creating leave request', error: error.message });

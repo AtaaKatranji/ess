@@ -4,6 +4,7 @@ const socketIo = require('socket.io');
 require("./config/db")
 const cors = require('cors');
 const app = express();
+const {pusher} = require('./service-worker')
 // CORS options to allow all necessary headers and credentials
 const corsOptions = {
   origin: 'https://ess-admin-lime.vercel.app', // Allow only your frontend domain
@@ -21,23 +22,23 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');// Use the cookieParser middleware
 app.use(cookieParser());
 const port = process.env.PORT || 9000;
-// const server = http.createServer(app);
-// const io = socketIo(server, {
-//   cors: {
-//     origin: '*', // Allow requests from any origin
-//     methods: ['GET', 'POST']
-//   }
-// });
-// // Listen for WebSocket connections
-// io.on('connection', (socket) => {
-//   console.log('A user connected');
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: '*', // Allow requests from any origin
+    methods: ['GET', 'POST']
+  }
+});
+// Listen for WebSocket connections
+io.on('connection', (socket) => {
+  console.log('A user connected');
 
-//   socket.on('disconnect', () => {
-//     console.log('A user disconnected');
-//   });
-// });
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+  });
+});
 
-// module.exports = { io };
+module.exports = { io };
 
 
 
@@ -80,4 +81,7 @@ app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.sendStatus(200); // Send a success status for the preflight request
+});
+pusher.trigger("my-channel", "my-event", {
+  message: "hello world"
 });
