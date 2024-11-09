@@ -9,7 +9,7 @@ exports.createLeave = async (req, res) => {
 
         await leaveRequest.save();
          // Emit the new leave request event to all connected clients
-        io.emit('newLeaveRequest', leaveRequest);
+        // io.emit('newLeaveRequest', leaveRequest);
         res.status(201).json({ message: 'Leave request created successfully', leaveRequest });
     } catch (error) {
         res.status(400).json({ message: 'Error creating leave request', error: error.message });
