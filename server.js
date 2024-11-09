@@ -1,6 +1,6 @@
 const express = require("express");
-const http = require('http');
-const socketIo = require('socket.io');
+// const http = require('http');
+// const socketIo = require('socket.io');
 require("./config/db")
 const cors = require('cors');
 const app = express();
@@ -22,23 +22,23 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');// Use the cookieParser middleware
 app.use(cookieParser());
 const port = process.env.PORT || 9000;
-const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: '*', // Allow requests from any origin
-    methods: ['GET', 'POST']
-  }
-});
-// Listen for WebSocket connections
-io.on('connection', (socket) => {
-  console.log('A user connected');
+// const server = http.createServer(app);
+// const io = socketIo(server, {
+//   cors: {
+//     origin: '*', // Allow requests from any origin
+//     methods: ['GET', 'POST']
+//   }
+// });
+// // Listen for WebSocket connections
+// io.on('connection', (socket) => {
+//   console.log('A user connected');
 
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
-});
+//   socket.on('disconnect', () => {
+//     console.log('A user disconnected');
+//   });
+// });
 
-module.exports = { io };
+// module.exports = { io };
 
 
 
