@@ -48,8 +48,13 @@ exports.createLeave = async (req, res) => {
 // Get all leave requests
 exports.getAllLeaves = async (req, res) => {
     try {
-        const leaves = await Leave.find();
-        res.status(200).json(leaves);
+        const leaves = await Leave.find().populate('employeeId');
+        const leaveRequestsWithNames = leaves.map(req => ({
+            ...req.toObject(),
+            employeeName: req.employeeId ? req.employeeId.name : 'Unknown Employee',
+            employeeId: undefined // Optionally remove employeeId if not needed
+        }));
+        res.status(200).json(leaveRequestsWithNames);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching leave requests', error: error.message });
     }
