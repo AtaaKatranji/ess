@@ -10,7 +10,7 @@ const corsOptions = {
   origin: 'https://ess-admin-lime.vercel.app', // Allow only your frontend domain
   credentials: true, // Allow cookies and credentials
   allowedHeaders: ['Content-Type', 'Authorization'], // Allow Content-Type and Authorization headers
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow these HTTP methods
+  methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE', 'OPTIONS'], // Allow these HTTP methods
 };
 // apply the CORS middleware globally for all routes
 app.use(cors(corsOptions));
