@@ -1,49 +1,45 @@
 // leaveController.js
 const Leave = require('../models/leaves');
+const UserModel = require('../models/user.model');
 const Subscription = require('../models/Subscription');
 
 exports.createLeave = async (req, res) => {
     try {
         const leaveRequest = new Leave(req.body);
         await leaveRequest.save()
-        // Prepare the push notification payload
         
+        const employee = await UserModel.findById(leaveRequest.employeeId); 
 
-        // Get the admin's push subscription object from your database
+        // Prepare the push notification payload
         const subscriptions = await Subscription.find({ role: 'admin' });
 
+        // Send push notification to each admin
+        subscriptions.forEach(async (subscription) => {
+            const pushPayload = JSON.stringify({
+                title: 'New Leave Request',
+                message: `A new leave request has been submitted by ${employee ? employee.name : 'Unknown Employee'}`,
+                url: `/leave-requests/${leaveRequest._id}`, // URL to view the leave request
+            });
 
-       // Send push notification to each admin
-       subscriptions.forEach(async (subscription) => {
-        const pushPayload = JSON.stringify({
-            title: 'New Leave Request',
-            message: `A new leave request has been submitted by ${leaveRequest.user}`,
-            url: `/leave-requests/${leaveRequest._id}`, // URL to view the leave request
+            try {
+                // Send the push notification
+                await webPush.sendNotification(subscription, pushPayload);
+            } catch (error) {
+                console.error('Error sending push notification', error);
+            }
         });
 
-        try {
-            // Send the push notification
-            await webPush.sendNotification(subscription, pushPayload);
-        } catch (error) {
-            console.error('Error sending push notification', error);
-        }
-    });
+        // Prepare a response with leave requests including employee names
+        const leaveRequests = await Leave.find().populate('employeeId'); // Assuming employeeId is a reference field
 
-        // Emit the real-time event using Pusher Channels
-        // pusher.trigger('leave-channel', 'newLeaveRequest', leaveRequest);
+        // Map through leaveRequests to replace employeeId with employee name
+        const leaveRequestsWithNames = leaveRequests.map(req => ({
+            ...req.toObject(),
+            employeeName: req.employeeId ? req.employeeId.name : 'Unknown Employee',
+            employeeId: undefined // Optionally remove employeeId if not needed
+        }));
 
-        // // Send a push notification using Pusher Beams
-        // beamsClient.publishToInterests(['admin-notifications'], {
-        //     web: {
-        //         notification: {
-        //             title: 'New Leave Request',
-        //             body: `A new leave request has been created.`,
-        //             deep_link: `https://ess-admin-lime.vercel.app/notification`
-        //         }
-        //     }
-        // });
-
-        res.status(201).json({ message: 'Leave request created successfully', leaveRequest });
+        res.status(201).json({ message: 'Leave request created successfully', leaveRequests: leaveRequestsWithNames });
     } catch (error) {
         res.status(400).json({ message: 'Error creating leave request', error: error.message });
     }
@@ -84,7 +80,46 @@ exports.updateLeave = async (req, res) => {
         res.status(400).json({ message: 'Error updating leave request', error: error.message });
     }
 };
+exports.approveLeaveRequest = async (req, res) => {
+    const { id } = req.params; // Assuming you're sending the ID in the URL params
 
+    try {
+        // Find the leave request by ID and update its status
+        const updatedLeave = await Leave.findByIdAndUpdate(
+            id,
+            { status: 'Approved' },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedLeave) {
+            return res.status(404).json({ message: 'Leave request not found' });
+        }
+
+        res.status(200).json({ message: 'Leave request approved successfully', leaveRequest: updatedLeave });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating leave request', error: error.message });
+    }
+};
+exports.rejectLeaveRequest = async (req, res) => {
+    const { id } = req.params; // Assuming you're sending the ID in the URL params
+
+    try {
+        // Find the leave request by ID and update its status
+        const updatedLeave = await Leave.findByIdAndUpdate(
+            id,
+            { status: 'Rejected' },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedLeave) {
+            return res.status(404).json({ message: 'Leave request not found' });
+        }
+
+        res.status(200).json({ message: 'Leave request reject successfully', leaveRequest: updatedLeave });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating leave request', error: error.message });
+    }
+};
 // Delete a leave request
 exports.deleteLeave = async (req, res) => {
     try {

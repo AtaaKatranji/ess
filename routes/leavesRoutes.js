@@ -18,4 +18,9 @@ router.put('/:id', leaveController.updateLeave);
 // Delete a leave request
 router.delete('/:id', leaveController.deleteLeave);
 
+
+
+router.patch('/:id/approve', leaveController.approveLeaveRequest);
+router.patch('/:id/reject', leaveController.rejectLeaveRequest);
+
 module.exports = router;
