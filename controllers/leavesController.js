@@ -8,26 +8,26 @@ exports.createLeave = async (req, res) => {
         const leaveRequest = new Leave(req.body);
         await leaveRequest.save()
         
-        const employee = await UserModel.findById(leaveRequest.employeeId); 
+        // const employee = await UserModel.findById(leaveRequest.employeeId); 
 
-        // Prepare the push notification payload
-        const subscriptions = await Subscription.find({ role: 'admin' });
+        // // Prepare the push notification payload
+        // const subscriptions = await Subscription.find({ role: 'admin' });
 
-        // Send push notification to each admin
-        subscriptions.forEach(async (subscription) => {
-            const pushPayload = JSON.stringify({
-                title: 'New Leave Request',
-                message: `A new leave request has been submitted by ${employee ? employee.name : 'Unknown Employee'}`,
-                url: `/leave-requests/${leaveRequest._id}`, // URL to view the leave request
-            });
+        // // Send push notification to each admin
+        // subscriptions.forEach(async (subscription) => {
+        //     const pushPayload = JSON.stringify({
+        //         title: 'New Leave Request',
+        //         message: `A new leave request has been submitted by ${employee ? employee.name : 'Unknown Employee'}`,
+        //         url: `/leave-requests/${leaveRequest._id}`, // URL to view the leave request
+        //     });
 
-            try {
-                // Send the push notification
-                await webPush.sendNotification(subscription, pushPayload);
-            } catch (error) {
-                console.error('Error sending push notification', error);
-            }
-        });
+        //     try {
+        //         // Send the push notification
+        //         await webPush.sendNotification(subscription, pushPayload);
+        //     } catch (error) {
+        //         console.error('Error sending push notification', error);
+        //     }
+        // });
 
         // Prepare a response with leave requests including employee names
         const leaveRequests = await Leave.find().populate('employeeId'); // Assuming employeeId is a reference field
