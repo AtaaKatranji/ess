@@ -1,5 +1,5 @@
 // leaveController.js
-const Leave = require('../models/leaves');
+const {Leave} = require('../models/leaves');
 const UserModel = require('../models/user.model');
 const Subscription = require('../models/Subscription');
 const moment = require('moment-timezone'); 

@@ -89,7 +89,6 @@ const calculateTotalHours = async (employeeId, dateString) => {
 
   // Start and end of the month
   const startDate = date.startOf('month').format("YYYY-MM-DD");
-  // const endDate = date.endOf('month').format("YYYY-MM-DD");
   const endDate = date.clone().add(1, 'month').startOf('month').format("YYYY-MM-DD");
   
   try {
