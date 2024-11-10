@@ -23,4 +23,6 @@ router.delete('/:id', leaveController.deleteLeave);
 router.patch('/:id/approve', leaveController.approveLeaveRequest);
 router.patch('/:id/reject', leaveController.rejectLeaveRequest);
 
+
+router.post('/month', leaveController.getEmployeeMonthLeaves);
 module.exports = router;

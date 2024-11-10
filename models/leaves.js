@@ -16,7 +16,7 @@ const leaveSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['paid', 'unpaid'], // Restrict to specific values
+        enum: ['Paid', 'Unpaid'], // Restrict to specific values
         required: true // Optional: enforce that this field is required
     },
     status: {

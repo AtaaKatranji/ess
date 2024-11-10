@@ -2,7 +2,7 @@
 const Leave = require('../models/leaves');
 const UserModel = require('../models/user.model');
 const Subscription = require('../models/Subscription');
-
+const moment = require('moment-timezone'); 
 exports.createLeave = async (req, res) => {
     try {
         const leaveRequest = new Leave(req.body);
@@ -59,6 +59,36 @@ exports.getAllLeaves = async (req, res) => {
         res.status(500).json({ message: 'Error fetching leave requests', error: error.message });
     }
 };
+// Get Monthly for one employee leave requests
+// Get Monthly leave requests for one employee
+exports.getEmployeeMonthLeaves = async (req, res) => {
+    const employeeId = req.body['userId'];
+    const month = req.body['month'];
+    const date = moment(new Date(month));
+
+    // Start and end of the month
+    const startDate = date.startOf('month').format("YYYY-MM-DD");
+    // const endDate = date.endOf('month').format("YYYY-MM-DD");
+    const endDate = date.clone().add(1, 'month').startOf('month').format("YYYY-MM-DD"); // Make sure getMonthNumber correctly returns the month as an integer (0-11)
+    console.log(startDate,endDate)
+    try {
+        // Find approved leave requests for the specified employee and month
+        const leaves = await Leave.find({
+            employeeId,
+            status: 'Approved', // Only include approved leave requests
+            startDate:{ $gte: startDate, $lt: endDate },
+        })
+        console.log(leaves)
+               // Calculate the number of paid and unpaid leaves
+               const paidLeaves = leaves.filter(req => req.type === 'Paid').length;
+               const unpaidLeaves = leaves.filter(req => req.type === 'Unpaid').length;
+               // Return the counts
+               res.status(200).json({ paidLeaves, unpaidLeaves });
+           } catch (error) {
+               res.status(500).json({ message: 'Error fetching leave requests', error: error.message });
+           }
+       };
+  
 
 // Get a specific leave request by ID
 exports.getLeaveById = async (req, res) => {
