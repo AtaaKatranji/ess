@@ -72,13 +72,13 @@ exports.getEmployeeMonthLeaves = async (req, res) => {
     const endDate = date.clone().add(1, 'month').startOf('month').format("YYYY-MM-DD"); // Make sure getMonthNumber correctly returns the month as an integer (0-11)
     console.log(startDate,endDate)
     try {
-        // Find approved leave requests for the specified employee and month
-        const leaves = await Leave.find({
-            employeeId,
-            status: 'Approved', // Only include approved leave requests
-            startDate:{ $gte: startDate, $lt: endDate },
-        })
-        console.log(leaves)
+                // Find approved leave requests for the specified employee and month
+                const leaves = await Leave.find({
+                    employeeId,
+                    status: 'Approved', // Only include approved leave requests
+                    startDate:{ $gte: startDate, $lt: endDate },
+                })
+                console.log(leaves)
                // Calculate the number of paid and unpaid leaves
                const paidLeaves = leaves.filter(req => req.type === 'Paid').length;
                const unpaidLeaves = leaves.filter(req => req.type === 'Unpaid').length;

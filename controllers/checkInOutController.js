@@ -1,4 +1,5 @@
 const {CheckInOut} = require('../models/schmeaESS');
+const {Leave} = require('../models/leaves');
 const Shift = require('../models/shift');
 const moment = require('moment-timezone'); 
 const mongoose = require('mongoose');
@@ -500,22 +501,12 @@ exports.currentCheck = async(req, res)=> {
 
 //summry data
 const calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, shiftEnd) => {
-  //date: Tue Oct 29 2024 00:00:00 GMT+0300 (GMT+03:00)
-  // const [year, month, day] = date.split('/').map(Number);
-  // let startDate = new Date(year, month - 1);
-  // let endDate;
-  // const now = new Date();
-  // console.log(month)
-  // if (now.getFullYear() === year && now.getMonth() === month - 1) {
-  //     endDate = new Date(year, month - 1, now.getDate());
-  // } else {
-  //     endDate = new Date(year, month, 1);
-  // }
+
   const date = moment(new Date(dateString));
 
-// Start and end of the month
-const startDate = date.startOf('month').format("YYYY-MM-DD");
-const endDate = date.endOf('month').format("YYYY-MM-DD");
+  // Start and end of the month
+  const startDate = date.startOf('month').format("YYYY-MM-DD");
+  const endDate = date.clone().add(1, 'month').startOf('month').format("YYYY-MM-DD"); 
 
   try {
     console.log(startDate,endDate)
@@ -523,6 +514,14 @@ const endDate = date.endOf('month').format("YYYY-MM-DD");
           employeeId: new mongoose.Types.ObjectId(employeeId),
           checkDate: { $gte: startDate, $lt: endDate },
       });
+      const leaves = await Leave.find({
+        employeeId,
+        status: 'Approved', // Only include approved leave requests
+        startDate:{ $gte: startDate, $lt: endDate },
+      })
+      // Calculate the number of paid and unpaid leaves
+      const paidLeaves = leaves.filter(req => req.type === 'Paid').length;
+      const unpaidLeaves = leaves.filter(req => req.type === 'Unpaid').length;
 
       let totalMinutes = 0;
       let lateMinutes = 0;
@@ -572,7 +571,9 @@ const endDate = date.endOf('month').format("YYYY-MM-DD");
           lateHours: totalLateHours,
           earlyLeaveHours: totalEarlyLeaveHours,
           earlyArrivalHours: totalEarlyArrivalHours,
-          extraAttendanceHours: totalExtraAttendanceHours
+          extraAttendanceHours: totalExtraAttendanceHours,
+          unpaidLeaves,
+          paidLeaves
       };
   } catch (err) {
       console.error('Error calculating attendance metrics:', err);
