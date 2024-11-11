@@ -83,7 +83,7 @@ exports.getEmployeeMonthLeaves = async (req, res) => {
                const paidLeaves = leaves.filter(req => req.type === 'Paid').length;
                const unpaidLeaves = leaves.filter(req => req.type === 'Unpaid').length;
                // Return the counts
-               res.status(200).json({ paidLeaves, unpaidLeaves });
+               res.status(200).json({ paidLeaves, unpaidLeaves, leaves });
            } catch (error) {
                res.status(500).json({ message: 'Error fetching leave requests', error: error.message });
            }
