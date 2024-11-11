@@ -84,23 +84,35 @@ exports.getEmployeeMonthLeaves = async (req, res) => {
 
         console.log(leaves);
 
-        // Calculate the number of paid and unpaid leaves
-        const paidLeaves = leaves.filter(req => req.type === 'Paid').length;
-        const unpaidLeaves = leaves.filter(req => req.type === 'Unpaid').length;
+        // Initialize counters for paid and unpaid leave days
+        let totalPaidLeaveDays = 0;
+        let totalUnpaidLeaveDays = 0;
 
-        // Calculate the count of days for each leave request
+        // Calculate the count of days for each leave request and accumulate totals
         const leavesWithDaysCount = leaves.map(leave => {
             const leaveStartDate = moment(leave.startDate);
             const leaveEndDate = moment(leave.endDate);
             const durationInDays = leaveEndDate.diff(leaveStartDate, 'days') + 1; // Include both start and end dates
+
+            // Accumulate total days based on leave type
+            if (leave.type === 'Paid') {
+                totalPaidLeaveDays += durationInDays;
+            } else if (leave.type === 'Unpaid') {
+                totalUnpaidLeaveDays += durationInDays;
+            }
+
             return {
                 ...leave.toObject(), // Convert Mongoose document to plain object
                 durationInDays // Add duration in days to the leave object
             };
         });
 
-        // Return the counts and leaves with their duration
-        res.status(200).json({ paidLeaves, unpaidLeaves, leaves: leavesWithDaysCount });
+        // Return the counts and total days for paid and unpaid leaves
+        res.status(200).json({ 
+            totalPaidLeaveDays, 
+            totalUnpaidLeaveDays, 
+            leaves: leavesWithDaysCount 
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching leave requests', error: error.message });
     }
