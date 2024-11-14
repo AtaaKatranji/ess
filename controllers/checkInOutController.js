@@ -873,15 +873,35 @@ exports.summry2 = async (req, res) => {
           const formattedCheckOut = day.checkOut ? day.checkOut : 'N/A';
           const dailyHours = calculateDailyHours(day.checkIn, day.checkOut); // Ensure hours are formatted to 2 decimal places
       
-          return `${day.date}: ${shortDay} ${formattedCheckIn} ${formattedCheckOut} ${dailyHours}`;
-        } else if(day.type === 'Leave') {
-          // If not a shift day, just show the day and date
-          return `${day.date}: ${dayOfWeek} ${day.type}`;
-        } else if(!shiftDays.includes(dayOfWeek.toString())) {
-          // If not a shift day, just show the day and date
-          return `${day.date}: ${dayOfWeek} Weekend`;
-        }else {
-          return `${day.date}: ${dayOfWeek} Absenst`;
+          return {
+            date: day.date,
+            dayOfWeek: shortDay,
+            checkIn: formattedCheckIn,
+            checkOut: formattedCheckOut,
+            dailyHours: dailyHours, // Ensure hours are formatted to 2 decimal places
+            type: 'Attendance'
+          };
+        } else if (day.type === 'Leave') {
+          // If it's a leave day, return relevant information
+          return {
+            date: day.date,
+            dayOfWeek: shortDay,
+            type: 'Leave'
+          };
+        } else if (!shiftDays.includes(dayOfWeek)) {
+          // If it's a weekend or non-shift day
+          return {
+            date: day.date,
+            dayOfWeek: shortDay,
+            type: 'Weekend'
+          };
+        } else {
+          // If absent
+          return {
+            date: day.date,
+            dayOfWeek: shortDay,
+            type: 'Absent'
+          };
         }
       })
     };
