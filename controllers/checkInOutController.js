@@ -3,8 +3,8 @@ const {Leave} = require('../models/leaves');
 const Shift = require('../models/shift');
 const moment = require('moment-timezone'); 
 const mongoose = require('mongoose');
-const { fetchShifts } = require('../controllers/shiftController')
-
+const { fetchShifts } = require('../controllers/shiftController');
+const { fetchEmployeeLeavesForMonth } = require('../controllers/leavesController');
 //---------- Helper Functions ----------
 const  getMonthNumber = (month) => { 
   const monthMap = {
@@ -518,9 +518,25 @@ const calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, sh
         status: 'Approved', // Only include approved leave requests
         startDate:{ $gte: startDate, $lt: endDate },
       })
-      // Calculate the number of paid and unpaid leaves
-      const paidLeaves = leaves.filter(req => req.type === 'Paid').length;
-      const unpaidLeaves = leaves.filter(req => req.type === 'Unpaid').length;
+      
+        // Initialize counters for paid and unpaid leave days
+        let totalPaidLeaveDays = 0;
+        let totalUnpaidLeaveDays = 0;
+
+        // Calculate the count of days for each leave request and accumulate totals
+        leaves.map(leave => {
+            const leaveStartDate = moment(leave.startDate);
+            const leaveEndDate = moment(leave.endDate);
+            const durationInDays = leaveEndDate.diff(leaveStartDate, 'days') + 1; // Include both start and end dates
+
+            // Accumulate total days based on leave type
+            if (leave.type === 'Paid') {
+                totalPaidLeaveDays += durationInDays;
+            } else if (leave.type === 'Unpaid') {
+                totalUnpaidLeaveDays += durationInDays;
+            }
+            
+        });
 
       let totalMinutes = 0;
       let lateMinutes = 0;
@@ -571,8 +587,8 @@ const calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, sh
           earlyLeaveHours: totalEarlyLeaveHours,
           earlyArrivalHours: totalEarlyArrivalHours,
           extraAttendanceHours: totalExtraAttendanceHours,
-          unpaidLeaves,
-          paidLeaves
+          totalPaidLeaveDays,
+          totalUnpaidLeaveDays
       };
   } catch (err) {
       console.error('Error calculating attendance metrics:', err);
@@ -718,5 +734,165 @@ exports.summryLastTwoMonth = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching monthly attendance data' });
+  }
+};
+// Helper function to format time
+function formatTime(time) {
+  if (!time) return 'N/A';
+  const date = new Date(time);
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+exports.summry2 = async (req, res) => {
+  const { employeeId, date } = req.body;
+  const dateMoment = moment(new Date(date));
+  
+  try {
+    // Use fetchShifts directly to get the shift data
+    const shiftResponse = await fetchShifts(employeeId);
+
+    // Check if shifts were successfully fetched and are available
+    if (!shiftResponse.success || !shiftResponse.shifts || shiftResponse.shifts.length === 0) {
+      return res.status(404).json({ message: 'No shifts found for the employee' });
+    }
+    console.log(shiftResponse.shifts[0].days);
+    const { startTime: shiftStart, endTime: shiftEnd } = shiftResponse.shifts[0];
+    const shiftDays = shiftResponse.shifts[0].days;
+    // Fetch attendance data
+    console.log(shiftDays)
+    const attendanceData = await calculateAttendanceMetrics(employeeId, date, shiftStart, shiftEnd);
+    console.log("Attendance Data: ", attendanceData);
+
+    // Fetch check-in and check-out history
+    const historyResponse = await fetchMonthlyHistory(employeeId, date);
+       
+    if (!historyResponse || !historyResponse.data) {
+      return res.json({ message: historyResponse?.error || 'Error fetching history data' });
+    }
+
+    // Sort the history data by date
+    const sortedHistoryData = historyResponse.data.sort((a, b) => 
+      new Date(a.checkDate) - new Date(b.checkDate)
+    );
+
+    // Fetch leave data for the employee in the specified month
+    let leaveRecords = await fetchEmployeeLeavesForMonth(employeeId, date);
+    console.log("Leave Records 1: ", leaveRecords);
+    // Ensure leaveRecords is an array
+    if (!Array.isArray(leaveRecords.leaves)) {
+      leaveRecords = []; // Default to an empty array if not valid
+    }
+
+
+    // Create a list of all days in the month
+    const allDaysInMonth = [];
+    let currentDate = new Date(dateMoment.startOf('month').add(1, 'day'));
+    const dayOfday = new Date()
+    console.log("dayOfday: ",dayOfday)
+    const endDayOfday = new Date(dateMoment.endOf('month').add(1, 'day'));
+    const endOfMonth = new Date(dateMoment.endOf('month').add(1, 'day'));
+    if(endOfMonth == endDayOfday){
+      while (currentDate <= endOfMonth) {
+        allDaysInMonth.push({
+          date: currentDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+          checkIn: null,
+          checkOut: null,
+          type: 'Abesent' // Default type to Shift
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }else {
+      while (currentDate <= dayOfday) {
+        allDaysInMonth.push({
+          date: currentDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+          checkIn: null,
+          checkOut: null,
+          type: 'Abesent' // Default type to Shift
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+    // Combine attendance and leave records into allDaysInMonth
+    sortedHistoryData.forEach(entry => {
+      // Ensure checkDate is in the correct format
+      const formattedDate = new Date(entry.checkDate).toISOString().split('T')[0];
+      const recordIndex = allDaysInMonth.findIndex(day => day.date === formattedDate);
+      if (recordIndex !== -1) {
+        allDaysInMonth[recordIndex].checkIn = entry.checkInTime;
+        allDaysInMonth[recordIndex].checkOut = entry.checkOutTime;
+        allDaysInMonth[recordIndex].type = 'Attendance';
+      }
+    });
+    console.log(leaveRecords.leaves)
+    leaveRecords.leaves.forEach(leave => {
+      const formattedLeaveDate = new Date(leave.startDate).toISOString().split('T')[0];
+      const recordIndex = allDaysInMonth.findIndex(day => day.date === formattedLeaveDate);
+      if (recordIndex !== -1) {
+        allDaysInMonth[recordIndex].type = 'Leave';
+      }
+    });
+
+    // Combine data as needed
+    const combinedData = {
+      summary: {
+        ...attendanceData,
+        totalDays: sortedHistoryData.length,
+        totalLeaves: leaveRecords.length,
+      },
+      details: allDaysInMonth.map(day => {
+        const dateObj = new Date(day.date);
+        const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }); // Get short day name (e.g., Sun, Mon)
+        // Mapping of short day names to long day names
+        console.log("day off week:  ",dayOfWeek)
+        const dayMapping = {
+          Sun: 'Sunday',
+          Mon: 'Monday',
+          Tue: 'Tuesday',
+          Wed: 'Wednesday',
+          Thu: 'Thursday',
+          Fri: 'Friday',
+          Sat: 'Saturday'
+        };
+        const dayMapping2 = {
+          'Sunday': 'Sun',
+          'Monday': 'Mon',
+          'Tuesday': 'Tue',
+          'Wednesday': 'Wed',
+          'Thursday': 'Thu',
+          'Friday': 'Fri',
+          'Saturday': 'Sat'
+        };
+
+        // Convert short day name to long form
+        const shortDay = dayMapping2[dayOfWeek];
+        // Check if the day is a shift day
+        console.log(shiftDays.includes(dayOfWeek.toString()))
+        console.log(day.checkIn)
+        if (shiftDays.includes(dayOfWeek.toString()) && day.type === 'Attendance') {
+          // Format check-in and check-out times
+          const formattedCheckIn = day.checkIn ? day.checkIn  : 'N/A';
+          const formattedCheckOut = day.checkOut ? day.checkOut : 'N/A';
+          const dailyHours = calculateDailyHours(day.checkIn, day.checkOut); // Ensure hours are formatted to 2 decimal places
+      
+          return `${day.date}: ${shortDay} ${formattedCheckIn} ${formattedCheckOut} ${dailyHours}`;
+        } else if(day.type === 'Leave') {
+          // If not a shift day, just show the day and date
+          return `${day.date}: ${dayOfWeek} ${day.type}`;
+        } else if(!shiftDays.includes(dayOfWeek.toString())) {
+          // If not a shift day, just show the day and date
+          return `${day.date}: ${dayOfWeek} Weekend`;
+        }else {
+          return `${day.date}: ${dayOfWeek} Absenst`;
+        }
+      })
+    };
+
+    res.json(combinedData);
+  } catch (error) {
+    console.error('Detailed error:', error);
+    res.status(500).json({ 
+      message: 'Error fetching monthly summary data', 
+      error: error.message || 'Unknown error',
+      stack: error.stack
+    });
   }
 };

@@ -15,6 +15,7 @@ router.post('/lastmonthlyHistory', checkInOutController.getLastMonthlyHistory);
 router.post('/checkcurrentday', checkInOutController.currentCheck);
 router.post('/timeShift', checkInOutController.timeShift);
 router.post('/summry', checkInOutController.summry);
+router.post('/summry2', checkInOutController.summry2);
 router.get('/summaryLastTwoMonth/:employeeId', checkInOutController.summryLastTwoMonth);
 
 module.exports = router;
