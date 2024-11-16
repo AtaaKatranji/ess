@@ -5,6 +5,7 @@ const moment = require('moment-timezone');
 const mongoose = require('mongoose');
 const { fetchShifts } = require('../controllers/shiftController');
 const { fetchEmployeeLeavesForMonth } = require('../controllers/leavesController');
+const  UserModel  =  require('../models/user.model');
 //---------- Helper Functions ----------
 const  getMonthNumber = (month) => { 
   const monthMap = {
@@ -745,7 +746,8 @@ function formatTime(time) {
 exports.summry2 = async (req, res) => {
   const { employeeId, date } = req.body;
   const dateMoment = moment(new Date(date));
-  
+  const employeeRecord = await UserModel.findById(employeeId);
+  const employeeName = employeeRecord.name;
   try {
     // Use fetchShifts directly to get the shift data
     const shiftResponse = await fetchShifts(employeeId);
@@ -837,6 +839,7 @@ exports.summry2 = async (req, res) => {
         ...attendanceData,
         totalDays: sortedHistoryData.length,
         totalLeaves: leaveRecords.length,
+        employeeName
       },
       details: allDaysInMonth.map(day => {
         const dateObj = new Date(day.date);
