@@ -500,7 +500,7 @@ exports.currentCheck = async(req, res)=> {
   };
 
 //summry data
-const calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, shiftEnd) => {
+const  calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, shiftEnd) => {
 
   const date = moment(new Date(dateString));
 
@@ -737,15 +737,11 @@ exports.summryLastTwoMonth = async (req, res) => {
     res.status(500).json({ message: 'Error fetching monthly attendance data' });
   }
 };
-// Helper function to format time
-function formatTime(time) {
-  if (!time) return 'N/A';
-  const date = new Date(time);
-  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-}
+
 exports.summry2 = async (req, res) => {
   const { employeeId, date } = req.body;
   const dateMoment = moment(new Date(date));
+  const monthName = dateMoment.format('MMMM'); 
   const employeeRecord = await UserModel.findById(employeeId);
   const employeeName = employeeRecord.name;
   try {
@@ -787,13 +783,21 @@ exports.summry2 = async (req, res) => {
 
     // Create a list of all days in the month
     const allDaysInMonth = [];
-    let currentDate = new Date(dateMoment.startOf('month').add(1, 'day'));
-    const dayOfday = new Date()
+    console.log("selectedDate: ",dateMoment)
+    let currentDate = new Date(dateMoment.startOf('month').add(1,'day'));
+    console.log("currentDay : ",currentDate)
+    const dayOfday =new Date();
+    const enddayOfday = moment(new Date());
     console.log("dayOfday: ",dayOfday)
-    const endDayOfday = new Date(dateMoment.endOf('month').add(1, 'day'));
-    const endOfMonth = new Date(dateMoment.endOf('month').add(1, 'day'));
-    if(endOfMonth == endDayOfday){
-      while (currentDate <= endOfMonth) {
+    console.log("enddayOfday: ",enddayOfday)
+    const endDayOfday = moment(new Date(enddayOfday.endOf('month').add(1, 'day')));
+    const endOfMonth = moment(new Date(dateMoment.endOf('month').add(1, 'day')));
+    console.log("endDayOfday: ",endDayOfday)
+    console.log("endOfMonth: ",endOfMonth)
+    console.log("all time: ",currentDate,dayOfday,endDayOfday,endOfMonth)
+    if(endOfMonth.isSame(endDayOfday)){
+      console.log("end month == end day of day")
+      while (currentDate <= dayOfday) {
         allDaysInMonth.push({
           date: currentDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
           checkIn: null,
@@ -803,7 +807,8 @@ exports.summry2 = async (req, res) => {
         currentDate.setDate(currentDate.getDate() + 1);
       }
     }else {
-      while (currentDate <= dayOfday) {
+      console.log("end month != end day of day")
+      while (currentDate <= endOfMonth) {
         allDaysInMonth.push({
           date: currentDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
           checkIn: null,
@@ -839,7 +844,8 @@ exports.summry2 = async (req, res) => {
         ...attendanceData,
         totalDays: sortedHistoryData.length,
         totalLeaves: leaveRecords.length,
-        employeeName
+        employeeName,
+        monthName
       },
       details: allDaysInMonth.map(day => {
         const dateObj = new Date(day.date);

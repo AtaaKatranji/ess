@@ -44,6 +44,8 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
     try {
         console.log('----------------no password',this.password);
         // @ts-ignore
+        console.log("1 ",candidatePassword)
+        console.log("2",this.password)
         const isMatch = await bcrypt.compare(candidatePassword, this.password);
         return isMatch;
     } catch (error) {
