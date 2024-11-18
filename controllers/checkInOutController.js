@@ -267,7 +267,7 @@ exports.add = async (req, res) => {
         $gte: new Date(dateObj.setHours(0, 0, 0, 0)), // Start of the day
         $lt: new Date(dateObj.setHours(23, 59, 59, 999)) // End of the day
       },
-      employeeId : userId
+      employeeId : employeeId
     });
 
     if (existingRecords.length > 0) {
