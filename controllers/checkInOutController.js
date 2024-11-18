@@ -245,6 +245,89 @@ const calculateTimeShift = async (employeeId, month, year, shiftStart, shiftEnd)
 };
 
 //---------Main Functions------------
+// Adding record from admin side 
+exports.add = async (req, res) => {
+  try {
+    const { userId, checkDate, checkInTime, checkOutTime, timeZone } = req.body;
+
+    // Validate input data
+    if (!checkDate || !checkInTime || !checkOutTime) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+    // Convert checkDate from string to Date object
+    const dateObj = new Date(checkDate);
+
+    // Check for valid date
+    if (isNaN(dateObj.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+    // Check for existing records on the same date
+    const existingRecords = await CheckInOut.find({
+      checkDate: {
+        $gte: new Date(dateObj.setHours(0, 0, 0, 0)), // Start of the day
+        $lt: new Date(dateObj.setHours(23, 59, 59, 999)) // End of the day
+      }
+    });
+
+    if (existingRecords.length > 0) {
+      return res.status(409).json({ message: 'A record for this date already exists' });
+    }
+
+    // Create a new record
+    const newCheck = new CheckInOut({
+      checkDate: dateObj,
+      checkInTime,
+      checkOutTime,
+      employeeId: userId,
+      timeZone: timeZone,
+    });
+
+    await newCheck.save();
+    
+    res.status(201).json({ message: 'Check-day record added successfully', data: newCheck });
+  } catch (error) {
+    console.error('Error adding record:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+// search based on check data
+exports.checkDate = async (req, res) => {
+  try {
+    const { date, employeeId } = req.query;
+
+    // Validate input
+    if (!date) {
+      return res.status(400).json({ message: 'Date query parameter is required' });
+    }
+
+    if (!employeeId) {
+      return res.status(400).json({ message: 'Employee ID query parameter is required' });
+    }
+
+    // Convert date from string to Date object
+    const dateObj = new Date(date);
+
+    // Check for valid date
+    if (isNaN(dateObj.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+
+    // Find records for the specified date and employee ID
+    const existingRecords = await CheckInOut.find({
+      checkDate: {
+        $gte: new Date(dateObj.setHours(0, 0, 0, 0)), // Start of the day
+        $lt: new Date(dateObj.setHours(23, 59, 59, 999)) // End of the day
+      },
+      employeeId: employeeId // Filter by employee ID
+    });
+
+    // Return existing records
+    res.status(200).json(existingRecords);
+  } catch (error) {
+    console.error('Error retrieving records:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 // Check In
 exports.checkIn = async (req, res) => {
   console.log(req.body);

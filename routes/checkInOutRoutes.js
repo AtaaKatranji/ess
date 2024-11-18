@@ -4,6 +4,8 @@ const checkInOutController = require('../controllers/checkInOutController');
 
 // Define the routes
 router.post('/startWork', checkInOutController.checkIn);
+router.post('/add', checkInOutController.add);
+router.get('/checks', checkInOutController.checkDate);
 router.post('/stopWork', checkInOutController.checkOut);
 router.post('/calculate-hours', checkInOutController.getTotalHours);
 router.post('/calculate-lateHours', checkInOutController.getTotalLateHours);

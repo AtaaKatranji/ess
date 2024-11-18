@@ -23,8 +23,6 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res) => {
     try {
         console.log('Request body:', req.body);
-        console.log('Request query:', req.query);
-        console.log('Request params:', req.params);
         
         var phoneNumber = req.body.phoneNumber;
         var password = req.body.password;
