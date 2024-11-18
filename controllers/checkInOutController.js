@@ -288,7 +288,7 @@ exports.add = async (req, res) => {
     res.status(201).json({ message: 'Check-day record added successfully', data: newCheck });
   } catch (error) {
     console.error('Error adding record:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: `Internal server error: ${error}` });
   }
 };
 // search based on check data
