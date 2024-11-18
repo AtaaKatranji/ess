@@ -249,7 +249,7 @@ const calculateTimeShift = async (employeeId, month, year, shiftStart, shiftEnd)
 exports.add = async (req, res) => {
   try {
     const { employeeId, checkDate, checkInTime, checkOutTime, timeZone } = req.body;
-
+    console.log(checkDate);
     // Validate input data
     if (!checkDate || !checkInTime || !checkOutTime) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -276,9 +276,9 @@ exports.add = async (req, res) => {
 
     // Create a new record
     const newCheck = new CheckInOut({
-      checkDate: dateObj,
-      checkInTime,
-      checkOutTime,
+      checkDate: checkDate,
+      checkInTime: checkTimeFormat12(checkInTime),
+      checkOutTime: checkTimeFormat12(checkOutTime),
       employeeId: employeeId,
       timeZone: timeZone,
     });
@@ -286,6 +286,7 @@ exports.add = async (req, res) => {
     await newCheck.save();
     
     res.status(201).json({ message: 'Check-day record added successfully', data: newCheck });
+    console.log(newCheck)
   } catch (error) {
     console.error('Error adding record:', error);
     res.status(500).json({ message: `Internal server error: ${error}` });
