@@ -248,7 +248,7 @@ const calculateTimeShift = async (employeeId, month, year, shiftStart, shiftEnd)
 // Adding record from admin side 
 exports.add = async (req, res) => {
   try {
-    const { userId, checkDate, checkInTime, checkOutTime, timeZone } = req.body;
+    const { employeeId, checkDate, checkInTime, checkOutTime, timeZone } = req.body;
 
     // Validate input data
     if (!checkDate || !checkInTime || !checkOutTime) {
@@ -279,7 +279,7 @@ exports.add = async (req, res) => {
       checkDate: dateObj,
       checkInTime,
       checkOutTime,
-      employeeId: userId,
+      employeeId: employeeId,
       timeZone: timeZone,
     });
 
