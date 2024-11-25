@@ -136,7 +136,7 @@ const fetchEmployeeLeavesForMonth = async (employeeId, month) => {
     // Find approved leave requests for the specified employee and month
     const leaves = await Leave.find({
         employeeId,
-        status: 'Approved',
+        
         startDate: { $gte: startDate, $lt: endDate },
     });
 
