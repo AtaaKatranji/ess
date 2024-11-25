@@ -52,7 +52,12 @@ const getEmployeeMonthLeaves = async (req, res) => {
     try {
         const result = await fetchEmployeeLeavesForMonth(employeeId, month);
         const resultDays = await fetchEmployeeLeaveDayForMonth(employeeId, month);
-        res.status(200).json(result,resultDays);
+        const responseData = {
+            leaves: result,
+            leaveDays: resultDays,
+          };
+          
+        res.status(200).json(responseData);
     } catch (error) {
         console.error(error); // Log error for debugging purposes
         res.status(500).json({ message: 'Error fetching leave requests', error: error.message });
