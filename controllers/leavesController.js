@@ -51,7 +51,8 @@ const getEmployeeMonthLeaves = async (req, res) => {
 
     try {
         const result = await fetchEmployeeLeavesForMonth(employeeId, month);
-        res.status(200).json(result);
+        const resultDays = await fetchEmployeeLeaveDayForMonth(employeeId, month);
+        res.status(200).json(result,resultDays);
     } catch (error) {
         console.error(error); // Log error for debugging purposes
         res.status(500).json({ message: 'Error fetching leave requests', error: error.message });
@@ -160,8 +161,45 @@ const fetchEmployeeLeavesForMonth = async (employeeId, month) => {
         return { ...leave.toObject(), durationInDays };
     });
 
-    return { totalPaidLeaveDays, totalUnpaidLeaveDays, leaves: leavesWithDaysCount };
+    return {  leaves: leavesWithDaysCount };
 };
+const fetchEmployeeLeaveDayForMonth = async (employeeId, month) => {
+    const date = moment(new Date(month));
+    const startDate = date.startOf('month').format("YYYY-MM-DD");
+    const endDate = date.clone().add(1, 'month').startOf('month').format("YYYY-MM-DD");
+
+    console.log(startDate, endDate);
+
+    // Find approved leave requests for the specified employee and month
+    const leaves = await Leave.find({
+        employeeId,
+        status: 'Approved',
+        startDate: { $gte: startDate, $lt: endDate },
+    });
+
+    // Initialize counters for paid and unpaid leave days
+    let totalPaidLeaveDays = 0;
+    let totalUnpaidLeaveDays = 0;
+
+    // Calculate the count of days for each leave request and accumulate totals
+    const leavesWithDaysCount = leaves.map(leave => {
+        const leaveStartDate = moment(leave.startDate);
+        const leaveEndDate = moment(leave.endDate);
+        const durationInDays = leaveEndDate.diff(leaveStartDate, 'days') + 1; // Include both start and end dates
+
+        // Accumulate total days based on leave type
+        if (leave.type === 'Paid') {
+            totalPaidLeaveDays += durationInDays;
+        } else if (leave.type === 'Unpaid') {
+            totalUnpaidLeaveDays += durationInDays;
+        }
+
+        return { ...leave.toObject(), durationInDays };
+    });
+
+    return { totalPaidLeaveDays, totalUnpaidLeaveDays };
+};
+
 
 // Export all functions as named exports
 module.exports = {
