@@ -27,6 +27,26 @@ const shiftSchema = new mongoose.Schema({
     type: String,
     required:true
   },
+  lateMultiplier: { 
+    type: Number, 
+    required: true,
+    default: 1
+  },
+  lateLimit: {
+    type: Number,
+    required: true,
+    default: 5
+  },
+  extraMultiplier: {
+    type: Number, 
+    required: true,
+    default: 1
+  },
+  extraLimit: {
+    type: Number, 
+    required: true,
+    default: 60
+  },
   
 }, {
   timestamps: true, // Adds createdAt and updatedAt fields

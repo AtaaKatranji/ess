@@ -543,7 +543,7 @@ exports.getLastMonthlyHistory = async (req, res) => {
 exports.getTotalHours = async (req, res) => {
     const employeeId  = req.body['userId'];
     const month = req.body['month'];
-
+    
     total = await calculateTotalHours(employeeId,month);
     res.status(200).json({ status: true, success: "sendData", total: total });
 };

@@ -53,6 +53,8 @@ const overView = require('./routes/overViewRoutes');
 const shiftRoute = require("./routes/shiftRoutes");
 const leavesRoute = require("./routes/leavesRoutes");
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const breakTime = require('./routes/breakTimeRoutes');
+
 const errorHandler = require('./middleware/errorHandler');
 
 app.use('/adm/admins', admins);
@@ -65,6 +67,7 @@ app.use('/ins', institutionRoutes);
 app.use('/shift', shiftRoute);
 app.use('/leaves', leavesRoute);
 app.use('/Noti', subscriptionRoutes);
+app.use('/break', breakTime);
 
 
 app.listen(port,process.env.SERVER_IP, () => {
