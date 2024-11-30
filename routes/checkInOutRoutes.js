@@ -19,5 +19,7 @@ router.post('/timeShift', checkInOutController.timeShift);
 router.post('/summry', checkInOutController.summry);
 router.post('/summry2', checkInOutController.summry2);
 router.get('/summaryLastTwoMonth/:employeeId', checkInOutController.summryLastTwoMonth);
+router.get('/absences', checkInOutController.getAbsentDays);
+
 
 module.exports = router;

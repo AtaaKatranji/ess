@@ -2,7 +2,7 @@ const Shift = require('../models/shift');
 const UserModel = require('../models/user.model');
 
 // Create a new shift
-exports.createShift = async (req, res) => {
+const createShift = async (req, res) => {
   try {
     const shift = new Shift(req.body);
     await shift.save();
@@ -13,7 +13,7 @@ exports.createShift = async (req, res) => {
 };
 
 // Get all shifts
-exports.getAllShifts = async (req, res) => {
+const getAllShifts = async (req, res) => {
   try {
     const shifts = await Shift.find().populate('employees', 'name _id');
     res.status(200).json(shifts);
@@ -23,7 +23,7 @@ exports.getAllShifts = async (req, res) => {
 };
 
 // Get all institution's shifts
-exports.getInstitutionShifts = async (req, res) => {
+const getInstitutionShifts = async (req, res) => {
   const { institutionKey } = req.body;
   try {
     const shifts = await Shift.find({ institutionKey }).populate('employees', 'name _id');
@@ -34,7 +34,7 @@ exports.getInstitutionShifts = async (req, res) => {
 };
 
 // Get a single shift by ID
-exports.getShiftById = async (req, res) => {
+const getShiftById = async (req, res) => {
   try {
     const shift = await Shift.findById(req.params.id).populate('employees', 'name _id');
     if (!shift) {
@@ -47,7 +47,7 @@ exports.getShiftById = async (req, res) => {
 };
 
 // Update a shift by ID
-exports.updateShift = async (req, res) => {
+const updateShift = async (req, res) => {
   try {
     const shift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!shift) {
@@ -61,7 +61,7 @@ exports.updateShift = async (req, res) => {
 };
 
 // Assign an employee to a shift
-exports.assignEmployee = async (req, res) => {
+const assignEmployee = async (req, res) => {
   try {
     const { id } = req.params; // Shift ID
     const { employeeId } = req.body;
@@ -84,7 +84,7 @@ exports.assignEmployee = async (req, res) => {
 };
 
 // Remove employee from a shift
-exports.removeEmployeeFromShift = async (req, res) => {
+const removeEmployeeFromShift = async (req, res) => {
   try {
     const { shiftId } = req.params;
     const { employeeId } = req.body;
@@ -107,7 +107,7 @@ exports.removeEmployeeFromShift = async (req, res) => {
 };
 
 // Move employee from one shift to another
-exports.moveEmployee = async (req, res) => {
+const moveEmployee = async (req, res) => {
   try {
     const { fromShiftId } = req.params;
     const { toShiftId, employeeId } = req.body;
@@ -130,7 +130,7 @@ exports.moveEmployee = async (req, res) => {
 };
 
 // Delete a shift
-exports.deleteShift = async (req, res) => {
+const deleteShift = async (req, res) => {
   try {
     const shift = await Shift.findByIdAndDelete(req.params.id);
     if (!shift) {
@@ -143,15 +143,36 @@ exports.deleteShift = async (req, res) => {
 };
 
 // Get employee's shifts
-exports.getTimeShift = async (req, res) => {
+const getEmployeeShifts = async (employeeId) => {
+  try {
+    return await Shift.find({ employees: employeeId }).select(
+      'name startTime endTime days institutionKey'
+    );
+  } catch (error) {
+    throw new Error('Error fetching shifts');
+  }
+};
+const getTimeShift = async (req, res) => {
   const { employeeId } = req.body;
 
   try {
-    const shifts = await Shift.find({ employees: employeeId }).select(
-      'name startTime endTime days institutionKey'
-    );
+    const shifts = await getEmployeeShifts(employeeId);
     res.status(200).json({ success: true, shifts });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Error fetching shifts' });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
+
+module.exports = {
+  createShift,
+  getAllShifts,
+  getInstitutionShifts,
+  getShiftById,
+  updateShift,
+  assignEmployee,
+  removeEmployeeFromShift,
+  moveEmployee,
+  deleteShift,
+  getEmployeeShifts,
+  getTimeShift,
+}

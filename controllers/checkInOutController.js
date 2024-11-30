@@ -3,7 +3,7 @@ const {Leave} = require('../models/leaves');
 const Shift = require('../models/shift');
 const moment = require('moment-timezone'); 
 const mongoose = require('mongoose');
-const { fetchShifts } = require('../controllers/shiftController');
+const  {getEmployeeShifts}  = require('../controllers/shiftController');
 const { fetchEmployeeLeavesForMonth } = require('../controllers/leavesController');
 const  UserModel  =  require('../models/user.model');
 //---------- Helper Functions ----------
@@ -831,15 +831,15 @@ exports.summry2 = async (req, res) => {
   const employeeName = employeeRecord.name;
   try {
     // Use fetchShifts directly to get the shift data
-    const shiftResponse = await fetchShifts(employeeId);
-
+    const shiftResponse = await getEmployeeShifts(employeeId);
+    console.log("1",shiftResponse)
     // Check if shifts were successfully fetched and are available
-    if (!shiftResponse.success || !shiftResponse.shifts || shiftResponse.shifts.length === 0) {
+    if (!shiftResponse || shiftResponse.length === 0) {
       return res.status(404).json({ message: 'No shifts found for the employee' });
     }
-    console.log(shiftResponse.shifts[0].days);
-    const { startTime: shiftStart, endTime: shiftEnd } = shiftResponse.shifts[0];
-    const shiftDays = shiftResponse.shifts[0].days;
+    console.log("2",shiftResponse[0].days);
+    const { startTime: shiftStart, endTime: shiftEnd } = shiftResponse[0];
+    const shiftDays = shiftResponse[0].days;
     // Fetch attendance data
     console.log(shiftDays)
     const attendanceData = await calculateAttendanceMetrics(employeeId, date, shiftStart, shiftEnd);
@@ -1010,3 +1010,81 @@ exports.summry2 = async (req, res) => {
     });
   }
 };
+
+exports.getAbsentDays = async (req, res) => {
+  try {
+    const { employeeId } = req.query;
+
+    if (!employeeId) {
+      return res.status(400).json({ error: 'Employee ID is required' });
+    }
+
+    // Get current date and start of the month
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // Generate all dates from the start of the month to today
+    const allDates = [];
+    for (let d = new Date(startOfMonth); d <= today; d.setDate(d.getDate() + 1)) {
+      allDates.push(new Date(d));
+    }
+
+    // Fetch the employee's shift
+    const shift = await Shift.findOne({ employees: employeeId });
+
+    if (!shift) {
+      return res.status(404).json({ error: 'Shift not found for the employee' });
+    }
+
+    // Convert shift workdays into a set for quick lookup
+    const workdays = new Set(shift.days);
+
+    // Filter allDates to include only workdays
+    const workDates = allDates.filter(
+      (date) => workdays.has(date.toLocaleDateString('en-US', { weekday: 'long' }))
+    );
+
+    // Fetch attendance records for the current month
+    const attendanceRecords = await CheckInOut.find({
+      employeeId,
+      checkDate: { $gte: startOfMonth, $lte: today },
+    });
+
+    // Fetch leave records for the current month
+    const leaveRecords = await Leave.find({
+      employeeId,
+      $or: [
+        { startDate: { $gte: startOfMonth, $lte: today } },
+        { endDate: { $gte: startOfMonth, $lte: today } },
+      ],
+    });
+
+    // Collect dates from attendance and approved leaves
+    const attendedOrLeaveDates = new Set([
+      ...attendanceRecords.map((record) => record.checkDate.toISOString().split('T')[0]),
+      ...leaveRecords.flatMap((record) => {
+        const leaveDates = [];
+        for (
+          let d = new Date(record.startDate);
+          d <= new Date(record.endDate);
+          d.setDate(d.getDate() + 1)
+        ) {
+          leaveDates.push(new Date(d).toISOString().split('T')[0]);
+        }
+        return leaveDates;
+      }),
+    ]);
+
+    // Determine absent dates
+    const absentDates = workDates
+      .filter((date) => !attendedOrLeaveDates.has(date.toISOString().split('T')[0]))
+      .map((date) => date.toISOString().split('T')[0]);
+
+    return res.status(200).json({ absentDates });
+  } catch (error) {
+    console.error('Error fetching absent days:', error);
+    return res.status(500).json({ error: 'Failed to fetch absent days' });
+  }
+};
+
+
