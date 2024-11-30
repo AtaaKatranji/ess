@@ -685,15 +685,15 @@ exports.summry = async (req, res) => {
   const { employeeId, date } = req.body;
 
   try {
-    // Use fetchShifts directly to get the shift data
-    const shiftResponse = await fetchShifts(employeeId);
+    // Use getEmployeeShifts directly to get the shift data
+    const shiftResponse = await getEmployeeShifts(employeeId);
 
     // Check if shifts were successfully fetched and are available
-    if (!shiftResponse.success || !shiftResponse.shifts || shiftResponse.shifts.length === 0) {
+    if (!shiftResponse || shiftResponse.length === 0) {
       return res.status(404).json({ message: 'No shifts found for the employee' });
     }
 
-    const { startTime: shiftStart, endTime: shiftEnd } = shiftResponse.shifts[0];
+    const { startTime: shiftStart, endTime: shiftEnd } = shiftResponse[0];
     console.log("p ",shiftStart)
     console.log("p1 ",shiftEnd)
     // Fetch attendance data
@@ -830,7 +830,7 @@ exports.summry2 = async (req, res) => {
   const employeeRecord = await UserModel.findById(employeeId);
   const employeeName = employeeRecord.name;
   try {
-    // Use fetchShifts directly to get the shift data
+    // Use getEmployeeShifts directly to get the shift data
     const shiftResponse = await getEmployeeShifts(employeeId);
     console.log("1",shiftResponse)
     // Check if shifts were successfully fetched and are available
