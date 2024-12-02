@@ -681,61 +681,61 @@ const  calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, s
   }
 };
 
-exports.summry = async (req, res) => {
-  const { employeeId, date } = req.body;
+// exports.summry = async (req, res) => {
+//   const { employeeId, date } = req.body;
 
-  try {
-    // Use getEmployeeShifts directly to get the shift data
-    const shiftResponse = await getEmployeeShifts(employeeId);
+//   try {
+//     // Use getEmployeeShifts directly to get the shift data
+//     const shiftResponse = await getEmployeeShifts(employeeId);
 
-    // Check if shifts were successfully fetched and are available
-    if (!shiftResponse || shiftResponse.length === 0) {
-      return res.status(404).json({ message: 'No shifts found for the employee' });
-    }
+//     // Check if shifts were successfully fetched and are available
+//     if (!shiftResponse || shiftResponse.length === 0) {
+//       return res.status(404).json({ message: 'No shifts found for the employee' });
+//     }
 
-    const { startTime: shiftStart, endTime: shiftEnd } = shiftResponse[0];
-    console.log("p ",shiftStart)
-    console.log("p1 ",shiftEnd)
-    // Fetch attendance data
-    const attendanceData = await calculateAttendanceMetrics(employeeId, date, shiftStart, shiftEnd);
-    console.log("a ",attendanceData)
-    // Fetch check-in and check-out history
-    const historyResponse = await fetchMonthlyHistory(employeeId, date);
-    console.log(historyResponse)
+//     const { startTime: shiftStart, endTime: shiftEnd } = shiftResponse[0];
+//     console.log("p ",shiftStart)
+//     console.log("p1 ",shiftEnd)
+//     // Fetch attendance data
+//     const attendanceData = await calculateAttendanceMetrics(employeeId, date, shiftStart, shiftEnd);
+//     console.log("a ",attendanceData)
+//     // Fetch check-in and check-out history
+//     const historyResponse = await fetchMonthlyHistory(employeeId, date);
+//     console.log(historyResponse)
     
-    if (historyResponse === null) {
-      return res.json({ message: historyResponse.error || 'Error fetching history data' });
-    }
-    // Sort the history data by date
-    const sortedHistoryData = historyResponse.data.sort((a, b) => 
-      new Date(a.checkDate) - new Date(b.checkDate)
-    );
+//     if (historyResponse === null) {
+//       return res.json({ message: historyResponse.error || 'Error fetching history data' });
+//     }
+//     // Sort the history data by date
+//     const sortedHistoryData = historyResponse.data.sort((a, b) => 
+//       new Date(a.checkDate) - new Date(b.checkDate)
+//     );
 
-    // Combine data as needed
-    const combinedData = {
-      summary: {
-        ...attendanceData,
-        totalDays: sortedHistoryData.length
-      },
-      details: sortedHistoryData.map(entry => ({
-        date: entry.checkDate,
-        checkIn: entry.checkInTime,
-        checkOut: entry.checkOutTime,
-        // You can calculate daily hours here if needed
-        dailyHours: calculateDailyHours(entry.checkInTime, entry.checkOutTime)
-      }))
-    };
+//     // Combine data as needed
+//     const combinedData = {
+//       summary: {
+//         ...attendanceData,
+//         totalDays: sortedHistoryData.length
+//       },
+//       details: sortedHistoryData.map(entry => ({
+//         date: entry.checkDate,
+//         checkIn: entry.checkInTime,
+//         checkOut: entry.checkOutTime,
+//         // You can calculate daily hours here if needed
+//         dailyHours: calculateDailyHours(entry.checkInTime, entry.checkOutTime)
+//       }))
+//     };
 
-    res.json(combinedData);
-  } catch (error) {
-    console.error('Detailed error:', error);
-    res.status(500).json({ 
-      message: 'Error fetching monthly summary data', 
-      error: error.message || 'Unknown error',
-      stack: error.stack
-    });
-  }
-};
+//     res.json(combinedData);
+//   } catch (error) {
+//     console.error('Detailed error:', error);
+//     res.status(500).json({ 
+//       message: 'Error fetching monthly summary data', 
+//       error: error.message || 'Unknown error',
+//       stack: error.stack
+//     });
+//   }
+// };
 
 function calculateShiftDaysInMonth(month, shift) {
   const [monthName, year] = month.split(' ');
@@ -832,7 +832,7 @@ exports.summry2 = async (req, res) => {
   try {
     // Use getEmployeeShifts directly to get the shift data
     const shiftResponse = await getEmployeeShifts(employeeId);
-    console.log("1",shiftResponse)
+    console.log("1",date)
     // Check if shifts were successfully fetched and are available
     if (!shiftResponse || shiftResponse.length === 0) {
       return res.status(404).json({ message: 'No shifts found for the employee' });
@@ -868,8 +868,9 @@ exports.summry2 = async (req, res) => {
 
     // Create a list of all days in the month
     const allDaysInMonth = [];
+    console.log("شمم يشغ: ",allDaysInMonth)
     console.log("selectedDate: ",dateMoment)
-    let currentDate = new Date(dateMoment.startOf('month').add(1,'day'));
+    let currentDate = new Date(dateMoment.startOf('month'));
     console.log("currentDay : ",currentDate)
     const dayOfday =new Date();
     const enddayOfday = moment(new Date());
@@ -903,6 +904,7 @@ exports.summry2 = async (req, res) => {
         currentDate.setDate(currentDate.getDate() + 1);
       }
     }
+    console.log("شمم يشغ: ",allDaysInMonth)
     // Combine attendance and leave records into allDaysInMonth
     sortedHistoryData.forEach(entry => {
       // Ensure checkDate is in the correct format
@@ -999,7 +1001,8 @@ exports.summry2 = async (req, res) => {
         }
       })
     };
-
+    console.log(combinedData);
+    
     res.json(combinedData);
   } catch (error) {
     console.error('Detailed error:', error);
