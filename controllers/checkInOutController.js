@@ -876,8 +876,8 @@ exports.summry2 = async (req, res) => {
     const enddayOfday = moment(new Date());
     console.log("dayOfday: ",dayOfday)
     console.log("enddayOfday: ",enddayOfday)
-    const endDayOfday = moment(new Date(enddayOfday.endOf('month').add(1, 'day')));
-    const endOfMonth = moment(new Date(dateMoment.endOf('month').add(1, 'day')));
+    const endDayOfday = moment(new Date(enddayOfday.endOf('month')));
+    const endOfMonth = moment(new Date(dateMoment.endOf('month')));
     console.log("endDayOfday: ",endDayOfday)
     console.log("endOfMonth: ",endOfMonth)
     console.log("all time: ",currentDate,dayOfday,endDayOfday,endOfMonth)
