@@ -12,6 +12,10 @@ const extraHoursAdjustmentSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
+  month: {
+    type: Number,
+    required: true,
+  },
   addedAt: {
     type: Date,
     default: Date.now,

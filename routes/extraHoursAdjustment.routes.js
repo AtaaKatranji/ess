@@ -6,11 +6,13 @@ const {
   getAllExtraHoursAdjustments,
   getExtraHoursAdjustmentById,
   deleteExtraHoursAdjustment,
+  getAdjustmentsByEmployeeAndMonth,
 } = require('../controllers/extraHoursAdjustment.controller');
 
 router.post('/', createExtraHoursAdjustment);
 router.get('/', getAllExtraHoursAdjustments);
 router.get('/:id', getExtraHoursAdjustmentById);
+router.get('/:id&:month', getAdjustmentsByEmployeeAndMonth);
 router.delete('/:id', deleteExtraHoursAdjustment);
 
 module.exports = router;
