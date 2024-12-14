@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const checkInOutController = require('../controllers/checkInOutController');
+const checkInOutController = require('../controllers/checkInOut.controller');
 
 // Define the routes
 router.post('/startWork', checkInOutController.checkIn);

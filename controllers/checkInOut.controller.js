@@ -3,8 +3,8 @@ const {Leave} = require('../models/leaves');
 const Shift = require('../models/shift');
 const moment = require('moment-timezone'); 
 const mongoose = require('mongoose');
-const  {getEmployeeShifts}  = require('../controllers/shiftController');
-const { fetchEmployeeLeavesForMonth } = require('../controllers/leavesController');
+const  {getEmployeeShifts}  = require('./shift.controller');
+const { fetchEmployeeLeavesForMonth } = require('./leaves.controller');
 const  UserModel  =  require('../models/user.model');
 //---------- Helper Functions ----------
 const  getMonthNumber = (month) => { 

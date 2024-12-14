@@ -1,6 +1,6 @@
 const { generateSlug } = require('../middleware/institutionMiddleware');
 const Institution = require('../models/Institution');
-const { isValidAdminId } = require('./adminController');
+const { isValidAdminId } = require('./admin.controller');
 
 // Controller to create institution
 exports.createInstitution = async (req, res, next) => {

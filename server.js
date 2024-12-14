@@ -42,18 +42,19 @@ const port = process.env.PORT || 9000;
 
 
 
-const admins = require('./routes/adminRoutes')
+const admins = require('./routes/admin.routes')
 const userRoutes = require('./routes/user');
 // const checksRoutes = require('./routes/apis');
-const checksRoutes = require('./routes/checkInOutRoutes');
+const checksRoutes = require('./routes/checkInOut.routes');
 const test = require("./routes/user.routes");
-const todo = require("./routes/toDo_apis");
-const institutionRoutes = require('./routes/institutionRoutes');
-const overView = require('./routes/overViewRoutes');
-const shiftRoute = require("./routes/shiftRoutes");
-const leavesRoute = require("./routes/leavesRoutes");
-const subscriptionRoutes = require('./routes/subscriptionRoutes');
-const breakTime = require('./routes/breakTimeRoutes');
+const todo = require("./routes/toDo_apis.routes");
+const institutionRoutes = require('./routes/institution.routes');
+const overView = require('./routes/overView.routes');
+const shiftRoute = require("./routes/shift.routes");
+const leavesRoute = require("./routes/leaves.routes");
+const subscriptionRoutes = require('./routes/subscription.routes');
+const breakTime = require('./routes/breakTime.routes');
+const addedHours = require('./routes/extraHoursAdjustment.routes');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -68,6 +69,7 @@ app.use('/shift', shiftRoute);
 app.use('/leaves', leavesRoute);
 app.use('/Noti', subscriptionRoutes);
 app.use('/break', breakTime);
+app.use('/extraHours', addedHours);
 
 
 app.listen(port,process.env.SERVER_IP, () => {

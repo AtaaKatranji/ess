@@ -13,7 +13,7 @@ const {
     getAllAdminInstitutions,
     checkName,
     getNetworks,
- } = require('../controllers/institutionController');
+ } = require('../controllers/institution.controller');
 const validateInstitution = require('../validators/validateInstitution');
 
 // Routes for institution management

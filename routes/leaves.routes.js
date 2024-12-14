@@ -1,7 +1,7 @@
 // leaveRoutes.js
 const express = require('express');
 const router = express.Router();
-const leaveController = require('../controllers/leavesController'); // Adjust the path as necessary
+const leaveController = require('../controllers/leaves.controller'); // Adjust the path as necessary
 
 // Create a new leave request
 router.post('/', leaveController.createLeave);

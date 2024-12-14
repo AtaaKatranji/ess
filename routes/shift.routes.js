@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const shiftController = require('../controllers/shiftController');
+const shiftController = require('../controllers/shift.controller');
 
 // Create a new shift
 router.post('/', shiftController.createShift);

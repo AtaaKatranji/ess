@@ -1,5 +1,5 @@
 const express = require('express');
-const breakTimeController = require('../controllers/breakTimeController');
+const breakTimeController = require('../controllers/breakTime.controller');
 const router = express.Router();
 
 // Routes for BreakTime

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/adminController'); // Adjust the path if necessary
+const adminController = require('../controllers/admin.controller'); // Adjust the path if necessary
 
 // POST: Create a new admin (Register)
 router.post('/register', adminController.createAdmin);
