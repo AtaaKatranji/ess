@@ -28,4 +28,4 @@ const extraHoursAdjustmentSchema = new mongoose.Schema({
 });
 
 const ExtraHoursAdjustment = mongoose.model('ExtraHoursAdjustment', extraHoursAdjustmentSchema);
-module.exports = ExtraHoursAdjustment;
+module.exports = {ExtraHoursAdjustment};

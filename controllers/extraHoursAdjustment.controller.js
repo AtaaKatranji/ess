@@ -1,6 +1,6 @@
 // Controller: extraHoursAdjustment.controller.js
-const ExtraHoursAdjustment = require('../models/extraHoursAdjustment.model');
-
+const {ExtraHoursAdjustment} = require('../models/extraHoursAdjustment.model');
+const mongoose = require('mongoose');
 // Create a new adjustment
 exports.createExtraHoursAdjustment = async (req, res) => {
   try {
@@ -15,6 +15,7 @@ exports.createExtraHoursAdjustment = async (req, res) => {
 // Get all adjustments
 exports.getAllExtraHoursAdjustments = async (req, res) => {
   try {
+    console.log("1")
     const adjustments = await ExtraHoursAdjustment.find();
     res.status(200).json(adjustments);
   } catch (error) {
@@ -51,14 +52,18 @@ exports.deleteExtraHoursAdjustment = async (req, res) => {
 // Get adjustments by employeeId and month
 exports.getAdjustmentsByEmployeeAndMonth = async (req, res) => {
   const { employeeId, month } = req.query;
-
+  console.log("2")
+  console.log(employeeId);
+  
+  console.log(month)
+  console.log(parseInt(month, 10))
   if (!employeeId || !month) {
     return res.status(400).json({ error: 'employeeId and month are required' });
   }
 
   try {
     const adjustments = await ExtraHoursAdjustment.find({
-      employeeId,
+      employeeId: new mongoose.Types.ObjectId(employeeId),
       month: parseInt(month, 10),
     });
 
