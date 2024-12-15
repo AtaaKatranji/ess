@@ -15,7 +15,6 @@ exports.createExtraHoursAdjustment = async (req, res) => {
 // Get all adjustments
 exports.getAllExtraHoursAdjustments = async (req, res) => {
   try {
-    console.log("1")
     const adjustments = await ExtraHoursAdjustment.find();
     res.status(200).json(adjustments);
   } catch (error) {
@@ -51,12 +50,7 @@ exports.deleteExtraHoursAdjustment = async (req, res) => {
 
 // Get adjustments by employeeId and month
 exports.getAdjustmentsByEmployeeAndMonth = async (req, res) => {
-  const { employeeId, month } = req.query;
-  console.log("2")
-  console.log(employeeId);
-  
-  console.log(month)
-  console.log(parseInt(month, 10))
+  const { employeeId, month } = req.body;
   if (!employeeId || !month) {
     return res.status(400).json({ error: 'employeeId and month are required' });
   }

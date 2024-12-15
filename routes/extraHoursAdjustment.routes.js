@@ -12,7 +12,7 @@ const {
 router.post('/', createExtraHoursAdjustment);
 router.get('/', getAllExtraHoursAdjustments);
 router.get('/:id', getExtraHoursAdjustmentById);
-router.get('/adjustments', getAdjustmentsByEmployeeAndMonth);
+router.post('/adjustments', getAdjustmentsByEmployeeAndMonth);
 router.delete('/:id', deleteExtraHoursAdjustment);
 
 module.exports = router;
