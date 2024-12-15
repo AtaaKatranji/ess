@@ -1022,13 +1022,23 @@ exports.getAbsentDays = async (req, res) => {
     }
 
     if (!month) {
-      return res.status(400).json({ error: 'Month is required in YYYY-MM format' });
+      return res.status(400).json({ error: 'Month is required' });
     }
 
-    // Parse the month value and calculate the start and end of the month
-    const [year, monthIndex] = month.split('-').map(Number);
-    const startOfMonth = new Date(year, monthIndex - 1, 1); // Month is 0-indexed
-    const endOfMonth = new Date(year, monthIndex, 0); // Last day of the month
+    // Decode the month parameter and parse it as a Date object
+    const parsedDate = new Date(decodeURIComponent(month));
+
+    if (isNaN(parsedDate)) {
+      return res.status(400).json({ error: 'Invalid month format' });
+    }
+
+    // Extract the year and month from the parsed date
+    const year = parsedDate.getFullYear();
+    const monthIndex = parsedDate.getMonth();
+
+    // Calculate the start and end of the month
+    const startOfMonth = new Date(year, monthIndex, 1); // First day of the month
+    const endOfMonth = new Date(year, monthIndex + 1, 0); // Last day of the month
 
     // Generate all dates in the specified month
     const allDates = [];
@@ -1093,6 +1103,3 @@ exports.getAbsentDays = async (req, res) => {
     return res.status(500).json({ error: 'Failed to fetch absent days' });
   }
 };
-
-
-
