@@ -1036,11 +1036,21 @@ exports.getAbsentDays = async (req, res) => {
     const year = parsedDate.getFullYear();
     const monthIndex = parsedDate.getMonth();
 
-    // Calculate the start and end of the month
-    const startOfMonth = new Date(year, monthIndex, 1); // First day of the month
-    const endOfMonth = new Date(year, monthIndex + 1, 0); // Last day of the month
+    // Calculate the start of the month
+    const startOfMonth = new Date(year, monthIndex, 1);
 
-    // Generate all dates in the specified month
+    // Calculate the end of the month
+    let endOfMonth;
+    const today = new Date();
+    if (year === today.getFullYear() && monthIndex === today.getMonth()) {
+      // If the provided month is the current month, end at today's date
+      endOfMonth = today;
+    } else {
+      // Otherwise, set the end of the month to the actual last day of the month
+      endOfMonth = new Date(year, monthIndex + 1, 0);
+    }
+
+    // Generate all dates in the specified month up to the `endOfMonth`
     const allDates = [];
     for (let d = new Date(startOfMonth); d <= endOfMonth; d.setDate(d.getDate() + 1)) {
       allDates.push(new Date(d));
@@ -1061,13 +1071,13 @@ exports.getAbsentDays = async (req, res) => {
       (date) => workdays.has(date.toLocaleDateString('en-US', { weekday: 'long' }))
     );
 
-    // Fetch attendance records for the specified month
+    // Fetch attendance records for the specified month up to `endOfMonth`
     const attendanceRecords = await CheckInOut.find({
       employeeId,
       checkDate: { $gte: startOfMonth, $lte: endOfMonth },
     });
 
-    // Fetch leave records for the specified month
+    // Fetch leave records for the specified month up to `endOfMonth`
     const leaveRecords = await Leave.find({
       employeeId,
       $or: [
