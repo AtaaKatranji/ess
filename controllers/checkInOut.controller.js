@@ -1013,22 +1013,26 @@ exports.summry2 = async (req, res) => {
     });
   }
 };
-
 exports.getAbsentDays = async (req, res) => {
   try {
-    const { employeeId } = req.query;
+    const { employeeId, month } = req.query;
 
     if (!employeeId) {
       return res.status(400).json({ error: 'Employee ID is required' });
     }
 
-    // Get current date and start of the month
-    const today = new Date();
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    if (!month) {
+      return res.status(400).json({ error: 'Month is required in YYYY-MM format' });
+    }
 
-    // Generate all dates from the start of the month to today
+    // Parse the month value and calculate the start and end of the month
+    const [year, monthIndex] = month.split('-').map(Number);
+    const startOfMonth = new Date(year, monthIndex - 1, 1); // Month is 0-indexed
+    const endOfMonth = new Date(year, monthIndex, 0); // Last day of the month
+
+    // Generate all dates in the specified month
     const allDates = [];
-    for (let d = new Date(startOfMonth); d <= today; d.setDate(d.getDate() + 1)) {
+    for (let d = new Date(startOfMonth); d <= endOfMonth; d.setDate(d.getDate() + 1)) {
       allDates.push(new Date(d));
     }
 
@@ -1047,18 +1051,18 @@ exports.getAbsentDays = async (req, res) => {
       (date) => workdays.has(date.toLocaleDateString('en-US', { weekday: 'long' }))
     );
 
-    // Fetch attendance records for the current month
+    // Fetch attendance records for the specified month
     const attendanceRecords = await CheckInOut.find({
       employeeId,
-      checkDate: { $gte: startOfMonth, $lte: today },
+      checkDate: { $gte: startOfMonth, $lte: endOfMonth },
     });
 
-    // Fetch leave records for the current month
+    // Fetch leave records for the specified month
     const leaveRecords = await Leave.find({
       employeeId,
       $or: [
-        { startDate: { $gte: startOfMonth, $lte: today } },
-        { endDate: { $gte: startOfMonth, $lte: today } },
+        { startDate: { $gte: startOfMonth, $lte: endOfMonth } },
+        { endDate: { $gte: startOfMonth, $lte: endOfMonth } },
       ],
     });
 
@@ -1089,5 +1093,6 @@ exports.getAbsentDays = async (req, res) => {
     return res.status(500).json({ error: 'Failed to fetch absent days' });
   }
 };
+
 
 
