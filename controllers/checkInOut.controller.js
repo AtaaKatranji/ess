@@ -604,7 +604,7 @@ const  calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, s
   // Start and end of the month
   const startDate = date.startOf('month').format("YYYY-MM-DD");
   const endDate = date.clone().add(1, 'month').startOf('month').format("YYYY-MM-DD"); 
-
+  const indexmonth = date.getMonth()+1;
   try {
     console.log(startDate,endDate)
       const sessions = await CheckInOut.find({
@@ -616,7 +616,14 @@ const  calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, s
         status: 'Approved', // Only include approved leave requests
         startDate:{ $gte: startDate, $lt: endDate },
       })
-      
+      const extraAdjusmentHoursRecords = await ExtraHoursAdjustment.find({
+        employeeId: new mongoose.Types.ObjectId(employeeId),
+          month: indexmonth
+      })
+      let addedHoures =0;
+      extraAdjusmentHoursRecords.forEach(entry => {
+        addedHoures = addedHoures + entry.addedHours
+      })
         // Initialize counters for paid and unpaid leave days
         let totalPaidLeaveDays = 0;
         let totalUnpaidLeaveDays = 0;
@@ -686,7 +693,8 @@ const  calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, s
           earlyArrivalHours: totalEarlyArrivalHours,
           extraAttendanceHours: totalExtraAttendanceHours,
           totalPaidLeaveDays,
-          totalUnpaidLeaveDays
+          totalUnpaidLeaveDays,
+          extraAdjusmentHours: addedHoures
       };
   } catch (err) {
       console.error('Error calculating attendance metrics:', err);
