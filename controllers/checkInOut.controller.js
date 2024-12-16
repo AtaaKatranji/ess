@@ -598,13 +598,13 @@ exports.currentCheck = async(req, res)=> {
 
 //summry data
 const  calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, shiftEnd) => {
-
+  const indexDate = new Date(dateString);
   const date = moment(new Date(dateString));
 
   // Start and end of the month
   const startDate = date.startOf('month').format("YYYY-MM-DD");
   const endDate = date.clone().add(1, 'month').startOf('month').format("YYYY-MM-DD"); 
-  const indexmonth = date.getMonth()+1;
+  const indexMonth = indexDate.getMonth()+1;
   try {
     console.log(startDate,endDate)
       const sessions = await CheckInOut.find({
@@ -618,7 +618,7 @@ const  calculateAttendanceMetrics = async (employeeId, dateString, shiftStart, s
       })
       const extraAdjusmentHoursRecords = await ExtraHoursAdjustment.find({
         employeeId: new mongoose.Types.ObjectId(employeeId),
-          month: indexmonth
+          month: indexMonth
       })
       let addedHoures =0;
       extraAdjusmentHoursRecords.forEach(entry => {
