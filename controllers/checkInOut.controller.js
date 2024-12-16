@@ -1,5 +1,6 @@
 const {CheckInOut} = require('../models/schmeaESS');
 const {Leave} = require('../models/leaves');
+const {ExtraHoursAdjustment} = require('../models/extraHoursAdjustment.model');
 const Shift = require('../models/shift');
 const moment = require('moment-timezone'); 
 const mongoose = require('mongoose');
@@ -174,6 +175,8 @@ const calculateTotalLateHours = async (employeeId, month, year) => {
 const calculateTimeShift = async (employeeId, month, year, shiftStart, shiftEnd) => {
   let startDate = new Date(year, month - 1);
   let endDate;
+  const indexmonth = startDate.getMonth()+1;
+  console.log(indexmonth);
   const now = new Date();
   if (now.getFullYear() === year && now.getMonth() === month - 1) {
       endDate = new Date(year, month - 1, now.getDate()); 
@@ -186,7 +189,15 @@ const calculateTimeShift = async (employeeId, month, year, shiftStart, shiftEnd)
           employeeId: new mongoose.Types.ObjectId(employeeId),
           checkDate: { $gte: startDate, $lt: endDate },
       });
-
+      const extraAdjusmentHoursRecords = await ExtraHoursAdjustment.find({
+        employeeId: new mongoose.Types.ObjectId(employeeId),
+          month: indexmonth
+      })
+      let addedHoures =0;
+      extraAdjusmentHoursRecords.forEach(entry => {
+        addedHoures = addedHoures + entry.addedHours
+      })
+      console.log(addedHoures)
       // Initialize counters
       let lateMinutes = 0;
       let earlyLeaveMinutes = 0;
@@ -232,12 +243,13 @@ const calculateTimeShift = async (employeeId, month, year, shiftStart, shiftEnd)
       console.log(`- Early Leave Hours: ${totalEarlyLeaveHours}`);
       console.log(`- Early Arrival Hours: ${totalEarlyArrivalHours}`);
       console.log(`- Extra Attendance Hours: ${totalExtraAttendanceHours}`);
-
+      console.log(`- Extra adjusment Hours: ${addedHoures}`);
       return {
         lateHours: totalLateHours,
         earlyLeaveHours: totalEarlyLeaveHours,
         earlyArrivalHours: totalEarlyArrivalHours,
-        extraAttendanceHours: totalExtraAttendanceHours
+        extraAttendanceHours: totalExtraAttendanceHours,
+        extraAdjusmentHours: addedHoures
       };
   } catch (err) {
       console.error('Error calculating time shifts:', err);
