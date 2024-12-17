@@ -1165,7 +1165,7 @@ exports.getCheckInOutData = async (req, res) => {
           checkIn: item.checkInTime,
           checkOut: item.checkOutTime,
           totalHours: item.checkOutTime
-            ? moment(item.checkOutTime, 'HH:mm').diff(moment(item.checkInTime, 'HH:mm'), 'hours', true)
+            ? moment(convertTo24HourFormat(item.checkOutTime), 'HH:mm').diff(moment(convertTo24HourFormat(item.checkInTime), 'HH:mm'), 'hours', true)
             : 0,
         },
       ])
