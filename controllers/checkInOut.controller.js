@@ -1134,21 +1134,22 @@ exports.getAbsentDays = async (req, res) => {
   }
 };
 exports.getCheckInOutData = async (req, res) => {
-  const date =moment(new Date());
-  console.log(date)
+  const date = moment(new Date());
   const formattedDate = date.toISOString().split('T')[0];
-  console.log(formattedDate)
+
   try {
     // Fetch shift data for the given shift ID
     const shiftId = req.query.shiftId; // Assuming shiftId is passed in the query parameters
     const shiftData = await Shift.findById(shiftId).lean();
 
     if (!shiftData) {
-        return res.status(404).json({ error: 'Shift not found' });
+      return res.status(404).json({ error: 'Shift not found' });
     }
 
     // Extract employee IDs from the shift data
     const employeeIds = shiftData.employees;
+
+    // Fetch check-in/out data for the employees
     const checkInOutData = await CheckInOut.find({
       checkDate: formattedDate,
       employeeId: { $in: employeeIds },
@@ -1156,22 +1157,37 @@ exports.getCheckInOutData = async (req, res) => {
       .populate('employeeId', 'name') // Fetch employee name
       .lean();
 
-    const result = checkInOutData.map(item => {
-      const checkIn = moment(item.checkIn, 'HH:mm');
-      const checkOut = item.checkOut ? moment(item.checkOut, 'HH:mm') : null;
+    // Map check-in/out data to employee ID for easy lookup
+    const checkInOutMap = new Map(
+      checkInOutData.map((item) => [
+        item.employeeId._id.toString(),
+        {
+          checkIn: item.checkIn,
+          checkOut: item.checkOut,
+          totalHours: item.checkOut
+            ? moment(item.checkOut, 'HH:mm').diff(moment(item.checkIn, 'HH:mm'), 'hours', true)
+            : 0,
+        },
+      ])
+    );
 
-      const loggedIn = !item.checkIn; // Logged in if checkOut is not set
-      const totalHours = checkOut ? checkOut.diff(checkIn, 'hours', true) : 0; // Calculate total hours
+    // Build result array with all employees in the shift
+    const result = await Promise.all(
+      employeeIds.map(async (employeeId) => {
+        const employee = await Employee.findById(employeeId).lean(); // Fetch employee details
 
-      return {
-        id: item.employeeId._id,
-        name: item.employeeId.name,
-        loggedIn,
-        checkIn: item.checkIn,
-        checkOut: item.checkOut || 'N/A', // Show 'N/A' if not logged out
-        totalHours: totalHours.toFixed(2), // Format to 2 decimal places
-      };
-    });
+        const data = checkInOutMap.get(employeeId.toString()); // Check if there's check-in/out data
+
+        return {
+          id: employee._id,
+          name: employee.name,
+          loggedIn: !!data, // True if there's check-in/out data
+          checkIn: data?.checkIn || 'N/A',
+          checkOut: data?.checkOut || 'N/A',
+          totalHours: data ? data.totalHours.toFixed(2) : '0.00', // Default to 0.00 hours if no data
+        };
+      })
+    );
 
     res.status(200).json(result);
   } catch (err) {
@@ -1179,4 +1195,5 @@ exports.getCheckInOutData = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch check-in/out data' });
   }
 };
+
 
