@@ -1156,7 +1156,13 @@ exports.getCheckInOutData = async (req, res) => {
     })
       .populate('employeeId', 'name') // Fetch employee name
       .lean();
-      console.log(checkInOutData);
+
+    // Fetch leave data for the employees on the given date
+    const leaveData = await Leave.find({
+      employeeId: { $in: employeeIds },
+      leaveDate: formattedDate,
+    }).lean();
+
     // Map check-in/out data to employee ID for easy lookup
     const checkInOutMap = new Map(
       checkInOutData.map((item) => [
@@ -1170,21 +1176,26 @@ exports.getCheckInOutData = async (req, res) => {
         },
       ])
     );
-    console.log(checkInOutMap);
+
+    // Map leave data to employee IDs
+    const leaveMap = new Set(leaveData.map((item) => item.employeeId.toString()));
+
     // Build result array with all employees in the shift
     const result = await Promise.all(
       employeeIds.map(async (employeeId) => {
         const employee = await UserModel.findById(employeeId).lean(); // Fetch employee details
 
-        const data = checkInOutMap.get(employeeId.toString()); // Check if there's check-in/out data
+        const checkInOut = checkInOutMap.get(employeeId.toString());
+        const isOnLeave = leaveMap.has(employeeId.toString());
 
         return {
           id: employee._id,
           name: employee.name,
-          loggedIn: !!data, // True if there's check-in/out data
-          checkIn: data?.checkIn || 'N/A',
-          checkOut: data?.checkOut || 'N/A',
-          totalHours: data ? data.totalHours.toFixed(2) : '0.00', // Default to 0.00 hours if no data
+          loggedIn: !!checkInOut, // True if there's check-in/out data
+          onLeave: isOnLeave, // True if the employee is on leave
+          checkIn: checkInOut?.checkIn || 'N/A',
+          checkOut: checkInOut?.checkOut || 'N/A',
+          totalHours: checkInOut ? checkInOut.totalHours.toFixed(2) : '0.00', // Default to 0.00 hours if no data
         };
       })
     );
@@ -1193,7 +1204,6 @@ exports.getCheckInOutData = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch check-in/out data' });
-  }
-};
+  }}
 
 
