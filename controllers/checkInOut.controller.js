@@ -1133,3 +1133,50 @@ exports.getAbsentDays = async (req, res) => {
     return res.status(500).json({ error: 'Failed to fetch absent days' });
   }
 };
+exports.getCheckInOutData = async (req, res) => {
+  const date =moment(new Date());
+  console.log(date)
+  const formattedDate = date.toISOString().split('T')[0];
+  console.log(formattedDate)
+  try {
+    // Fetch shift data for the given shift ID
+    const shiftId = req.query.shiftId; // Assuming shiftId is passed in the query parameters
+    const shiftData = await Shift.findById(shiftId).lean();
+
+    if (!shiftData) {
+        return res.status(404).json({ error: 'Shift not found' });
+    }
+
+    // Extract employee IDs from the shift data
+    const employeeIds = shiftData.employees;
+    const checkInOutData = await CheckInOut.find({
+      checkDate: formattedDate,
+      employeeId: { $in: employeeIds },
+    })
+      .populate('employeeId', 'name') // Fetch employee name
+      .lean();
+
+    const result = checkInOutData.map(item => {
+      const checkIn = moment(item.checkIn, 'HH:mm');
+      const checkOut = item.checkOut ? moment(item.checkOut, 'HH:mm') : null;
+
+      const loggedIn = !item.checkIn; // Logged in if checkOut is not set
+      const totalHours = checkOut ? checkOut.diff(checkIn, 'hours', true) : 0; // Calculate total hours
+
+      return {
+        id: item.employeeId._id,
+        name: item.employeeId.name,
+        loggedIn,
+        checkIn: item.checkIn,
+        checkOut: item.checkOut || 'N/A', // Show 'N/A' if not logged out
+        totalHours: totalHours.toFixed(2), // Format to 2 decimal places
+      };
+    });
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch check-in/out data' });
+  }
+};
+
