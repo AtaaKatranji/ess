@@ -1156,21 +1156,21 @@ exports.getCheckInOutData = async (req, res) => {
     })
       .populate('employeeId', 'name') // Fetch employee name
       .lean();
-
+      console.log(checkInOutData);
     // Map check-in/out data to employee ID for easy lookup
     const checkInOutMap = new Map(
       checkInOutData.map((item) => [
         item.employeeId._id.toString(),
         {
-          checkIn: item.checkIn,
-          checkOut: item.checkOut,
-          totalHours: item.checkOut
-            ? moment(item.checkOut, 'HH:mm').diff(moment(item.checkIn, 'HH:mm'), 'hours', true)
+          checkIn: item.checkInTime,
+          checkOut: item.checkOutTime,
+          totalHours: item.checkOutTime
+            ? moment(item.checkOutTime, 'HH:mm').diff(moment(item.checkInTime, 'HH:mm'), 'hours', true)
             : 0,
         },
       ])
     );
-
+    console.log(checkInOutMap);
     // Build result array with all employees in the shift
     const result = await Promise.all(
       employeeIds.map(async (employeeId) => {
