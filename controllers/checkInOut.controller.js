@@ -1174,7 +1174,7 @@ exports.getCheckInOutData = async (req, res) => {
     // Build result array with all employees in the shift
     const result = await Promise.all(
       employeeIds.map(async (employeeId) => {
-        const employee = await Employee.findById(employeeId).lean(); // Fetch employee details
+        const employee = await UserModel.findById(employeeId).lean(); // Fetch employee details
 
         const data = checkInOutMap.get(employeeId.toString()); // Check if there's check-in/out data
 
