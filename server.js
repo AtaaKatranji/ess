@@ -40,7 +40,7 @@ const port = process.env.PORT || 9000;
 
 // module.exports = { io };
 
-
+const { sendNotification } = require("./utils/sendNotification");
 
 const admins = require('./routes/admin.routes')
 const userRoutes = require('./routes/user');
@@ -70,6 +70,23 @@ app.use('/leaves', leavesRoute);
 app.use('/Noti', subscriptionRoutes);
 app.use('/break', breakTime);
 app.use('/extraHours', addedHours);
+
+// Example route to send notifications
+app.post("/send-notification", async (req, res) => {
+  const { fcmToken, title, body } = req.body;
+
+  if (!fcmToken || !title || !body) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  try {
+    const response = await sendNotification(fcmToken, title, body);
+    return res.status(200).json({ success: true, response });
+  } catch (error) {
+    console.error("Error sending notification:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 
 app.listen(port,process.env.SERVER_IP, () => {

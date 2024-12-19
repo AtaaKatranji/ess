@@ -110,7 +110,7 @@ exports.signIn = async (req, res) => {
     let tokenData = { _id: admin._id, phoneNumber: admin.phoneNumber, name: admin.name };
 
     // Generate the token
-    const token = await UserServices.generateAccessToken(tokenData, process.env.JWT_SECRET, "1h");
+    const token = await UserServices.generateAccessToken(tokenData, process.env.JWT_SECRET, "30d");
 
     // Set the token as a cookie
     res.setHeader('Access-Control-Allow-Origin', 'https://ess-admin-lime.vercel.app'); // Allow the frontend origin
@@ -127,7 +127,7 @@ exports.signIn = async (req, res) => {
     
 
     // Send successful response
-    return res.status(200).json({ message: 'Login successful' });
+    return res.status(200).json({ message: 'Login successful',adminId: admin._id });
 
   } catch (error) {
     console.error(error);
