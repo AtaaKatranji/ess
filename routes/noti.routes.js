@@ -1,14 +1,8 @@
-import { sendNotification } from "./lib/notificationService";  // Assuming we create this service
-
-
-// Middleware to parse JSON bodies
-import bodyParser from "body-parser";
 
 const express = require("express");
 const admin = require("../config/firebaseAdmin");
 const router = express.Router();
-const {saveToken} = require("../models/token")
-const tokens = []; // Replace this with your MongoDB database
+const saveToken = require("../models/token")
 
 // Save FCM token
 router.post("/save-token", async (req, res) => {

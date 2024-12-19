@@ -55,7 +55,7 @@ const leavesRoute = require("./routes/leaves.routes");
 const subscriptionRoutes = require('./routes/subscription.routes');
 const breakTime = require('./routes/breakTime.routes');
 const addedHours = require('./routes/extraHoursAdjustment.routes');
-
+const notification = require('./routes/noti.routes');
 const errorHandler = require('./middleware/errorHandler');
 
 app.use('/adm/admins', admins);
@@ -67,7 +67,7 @@ app.use('/todolist', todo);
 app.use('/ins', institutionRoutes);
 app.use('/shift', shiftRoute);
 app.use('/leaves', leavesRoute);
-app.use('/Noti', subscriptionRoutes);
+app.use('/noti', notification);
 app.use('/break', breakTime);
 app.use('/extraHours', addedHours);
 
