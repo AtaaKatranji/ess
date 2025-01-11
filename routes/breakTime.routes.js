@@ -4,12 +4,12 @@ const breakTypeController = require('../controllers/breakType.controller');
 const employeeBreakController = require('../controllers/employeeBreak.controller');
 
 // BreakType Routes
-router.post('/break-types', authenticateToken,breakTypeController.createBreakType);
+router.post('/break-types', breakTypeController.createBreakType);
 router.get('/break-types', breakTypeController.getAllBreakTypes);
 router.get('/break-types/:id', breakTypeController.getBreakTypeById);
 router.get('/break-types/shift/:shiftId', breakTypeController.getBreakTypesByShiftId); 
-router.put('/break-types/:id', authenticateToken,breakTypeController.updateBreakType);
-router.delete('/break-types/:id', authenticateToken,breakTypeController.deleteBreakType);
+router.put('/break-types/:id', breakTypeController.updateBreakType);
+router.delete('/break-types/:id', breakTypeController.deleteBreakType);
 
 // EmployeeBreak Routes
 router.post('/employee-breaks', employeeBreakController.createEmployeeBreak);
