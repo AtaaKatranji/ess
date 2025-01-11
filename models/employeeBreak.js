@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const employeeBreakSchema = new mongoose.Schema({
   employeeId: {
     type: mongoose.Schema.Types.ObjectId,
