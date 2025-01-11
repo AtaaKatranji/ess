@@ -69,7 +69,7 @@ exports.deleteBreakType = async (req, res) => {
 exports.getBreakTypesByShiftId = async (req, res) => {
     try {
       const shiftId = req.params.shiftId;
-      const breakTypes = await BreakType.find({ shiftId }).populate('shiftId');
+      const breakTypes = await BreakType.find({ shiftId });
       if (breakTypes.length === 0) {
         return res.status(404).json({ message: 'No break types found for this shift' });
       }
