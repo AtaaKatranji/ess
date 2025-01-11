@@ -1,12 +1,23 @@
 const express = require('express');
-const breakTimeController = require('../controllers/breakTime.controller');
 const router = express.Router();
+const breakTypeController = require('../controllers/breakType.controller');
+const employeeBreakController = require('../controllers/employeeBreak.controller');
 
-// Routes for BreakTime
-router.post('/start', breakTimeController.startBreak);
-router.put('/end', breakTimeController.endBreak);
-router.get('/employee/:employeeId', breakTimeController.getBreaksByEmployee);
-router.delete('/:breakId', breakTimeController.deleteBreak);
-router.get('/employee/:employeeId/total-duration', breakTimeController.getTotalBreakDuration);
+// BreakType Routes
+router.post('/break-types', authenticateToken,breakTypeController.createBreakType);
+router.get('/break-types', breakTypeController.getAllBreakTypes);
+router.get('/break-types/:id', breakTypeController.getBreakTypeById);
+router.get('/break-types/shift/:shiftId', breakTypeController.getBreakTypesByShiftId); 
+router.put('/break-types/:id', authenticateToken,breakTypeController.updateBreakType);
+router.delete('/break-types/:id', authenticateToken,breakTypeController.deleteBreakType);
 
+// EmployeeBreak Routes
+router.post('/employee-breaks', employeeBreakController.createEmployeeBreak);
+router.get('/employee-breaks', employeeBreakController.getAllEmployeeBreaks);
+router.get('/employee-breaks/:id', employeeBreakController.getEmployeeBreakById);
+router.put('/employee-breaks/:id', employeeBreakController.updateEmployeeBreak);
+router.delete('/employee-breaks/:id', employeeBreakController.deleteEmployeeBreak);
+
+router.put('/employee-breaks/:breakId/status', employeeBreakController.updateBreakStatus); // Approve/reject break
+router.put('/employee-breaks/:breakId/track', employeeBreakController.trackBreakTime); // Track break time
 module.exports = router;
