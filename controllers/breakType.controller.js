@@ -1,5 +1,7 @@
 const BreakType = require('../models/breakType');
 const Shift = require('../models/shift');
+const mongoose = require('mongoose');
+const { getEmployeeShifts } = require('./shift.controller');
 // Create a new break type
 exports.createBreakType = async (req, res) => {
   try {
@@ -82,8 +84,10 @@ exports.getBreakTypesByShiftId = async (req, res) => {
 exports.getBreakTypesByEmployeeId = async (req, res) => {
   try {
     const employeeId = req.params.employeeId;
-    const shiftId = await Shift.find({employeeId})
-    const breakTypes = await BreakType.find({ shiftId });
+    const shiftId = await getEmployeeShifts(employeeId)
+    const firstShiftId = shiftId[0]._id;
+    console.log("this shift id of employee ", firstShiftId);
+    const breakTypes = await BreakType.find({ shiftId: firstShiftId });
     if (breakTypes.length === 0) {
       return res.status(404).json({ message: 'No break types found for this shift' });
     }
