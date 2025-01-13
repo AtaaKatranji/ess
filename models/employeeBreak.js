@@ -68,9 +68,11 @@ employeeBreakSchema.pre('save', function (next) {
 });
 // Middleware to automatically calculate `duration`
 employeeBreakSchema.pre('save', function (next) {
-  if (this.startTime && this.endTime) {
-    const duration = (this.endTime - this.startTimetaken) / (1000 * 60); // Convert ms to minutes
-    this.durationTaken = duration;
+  if(this.isCustomBreak){
+    if (this.startTime && this.endTime) {
+      const duration = (this.endTime - this.startTimetaken) / (1000 * 60); // Convert ms to minutes
+      this.durationTaken = duration;
+    }
   }
   next();
 });

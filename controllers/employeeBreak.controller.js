@@ -3,16 +3,17 @@ const EmployeeBreak = require('../models/employeeBreak');
 // Record a new employee break
 exports.createEmployeeBreak = async (req, res) => {
   try {
-    const { employeeId, breakTypeId, startTime, duration } = req.body;
+    const { employeeId, breakTypeId, startTime, duration, isCustomBreak, customBreakName } = req.body;
+
     const newEmployeeBreak = new EmployeeBreak({
       employeeId,
       breakTypeId,
       startTime,
       duration,
-      endTime,
-      isCustomBreak : false,
-      customBreakName
+      isCustomBreak: isCustomBreak || false, // Default to false if not provided
+      customBreakName: isCustomBreak ? customBreakName : null, // Only include if isCustomBreak is true
     });
+
     await newEmployeeBreak.save();
     res.status(201).json({ message: 'Employee break recorded successfully', data: newEmployeeBreak });
   } catch (error) {
