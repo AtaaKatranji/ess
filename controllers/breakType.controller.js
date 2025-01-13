@@ -1,5 +1,5 @@
 const BreakType = require('../models/breakType');
-
+const Shift = require('../models/shift');
 // Create a new break type
 exports.createBreakType = async (req, res) => {
   try {
@@ -78,3 +78,17 @@ exports.getBreakTypesByShiftId = async (req, res) => {
       res.status(400).json({ message: 'Error fetching break types', error: error.message });
     }
   };
+  // Get all break types for a specific shift ID
+exports.getBreakTypesByEmployeeId = async (req, res) => {
+  try {
+    const employeeId = req.params.employeeId;
+    const shiftId = await Shift.find({employeeId})
+    const breakTypes = await BreakType.find({ shiftId });
+    if (breakTypes.length === 0) {
+      return res.status(404).json({ message: 'No break types found for this shift' });
+    }
+    res.status(200).json({ message: 'Break types fetched successfully', data: breakTypes });
+  } catch (error) {
+    res.status(400).json({ message: 'Error fetching break types', error: error.message });
+  }
+};

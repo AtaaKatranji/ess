@@ -8,6 +8,7 @@ router.post('/break-types', breakTypeController.createBreakType);
 router.get('/break-types', breakTypeController.getAllBreakTypes);
 router.get('/break-types/:id', breakTypeController.getBreakTypeById);
 router.get('/break-types/shift/:shiftId', breakTypeController.getBreakTypesByShiftId); 
+router.get('/break-types/employee/:employeeId', breakTypeController.getBreakTypesByEmployeeId); 
 router.put('/break-types/:id', breakTypeController.updateBreakType);
 router.delete('/break-types/:id', breakTypeController.deleteBreakType);
 
