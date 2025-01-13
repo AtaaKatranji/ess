@@ -5,8 +5,8 @@ const { getEmployeeShifts } = require('./shift.controller');
 // Create a new break type
 exports.createBreakType = async (req, res) => {
   try {
-    const { name, duration, shiftId } = req.body;
-    const newBreakType = new BreakType({ name, duration, shiftId });
+    const { name, duration, shiftId, icon} = req.body;
+    const newBreakType = new BreakType({ name, duration, shiftId, icon });
     await newBreakType.save();
     res.status(201).json({ message: 'Break type created successfully', data: newBreakType });
   } catch (error) {
@@ -40,10 +40,10 @@ exports.getBreakTypeById = async (req, res) => {
 // Update a break type
 exports.updateBreakType = async (req, res) => {
   try {
-    const { name, duration, shiftId } = req.body;
+    const { name, duration, shiftId, icon } = req.body;
     const breakType = await BreakType.findByIdAndUpdate(
       req.params.id,
-      { name, duration, shiftId },
+      { name, duration, shiftId, icon },
       { new: true }
     );
     if (!breakType) {

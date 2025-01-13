@@ -9,6 +9,10 @@ const breakTypeSchema = new mongoose.Schema({
     type: Number, // Duration in minutes
     required: true
   },
+  icon: {
+    type: String,
+    default: ""
+  },
   shiftId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Shift', // Reference to Shift collection
