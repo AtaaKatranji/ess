@@ -3,15 +3,16 @@ const EmployeeBreak = require('../models/employeeBreak');
 // Record a new employee break
 exports.createEmployeeBreak = async (req, res) => {
   try {
-    const { employeeId, breakTypeId, startTime, duration, isCustomBreak, customBreakName } = req.body;
+    const { employeeId, breakTypeId, startTime, duration} = req.body;
 
     const newEmployeeBreak = new EmployeeBreak({
       employeeId,
       breakTypeId,
       startTime,
       duration,
-      isCustomBreak: isCustomBreak || false, // Default to false if not provided
-      customBreakName: isCustomBreak ? customBreakName : null, // Only include if isCustomBreak is true
+      isCustomBreak:  false, // Default to false if not provided
+      customBreakName:  null,
+      // Only include if isCustomBreak is true
     });
 
     await newEmployeeBreak.save();
@@ -81,6 +82,38 @@ exports.updateEmployeeBreak = async (req, res) => {
     res.status(200).json({ message: 'Employee break updated successfully', data: employeeBreak });
   } catch (error) {
     res.status(400).json({ message: 'Error updating employee break', error: error.message });
+  }
+};
+// Update an employee break : custom one update taken time and turn on timer 
+exports.updateEmployeeBreakStartTime = async (req, res) => {
+  try {
+    const { employeeId, breakTypeId, startTime, endTime, isCustomBreak, customBreakName } = req.body;
+    const employeeBreak = await EmployeeBreak.findByIdAndUpdate(
+      req.params.id,
+      { employeeId, breakTypeId, startTime, endTime, isCustomBreak, customBreakName },
+      { new: true }
+    );
+    if (!employeeBreak) {
+      return res.status(404).json({ message: 'Employee break not found' });
+    }
+    res.status(200).json({ message: 'Employee break updated successfully', data: employeeBreak });
+  } catch (error) {
+    res.status(400).json({ message: 'Error updating employee break', error: error.message });
+  }
+};
+// polling status 
+exports.getBreakStatus = async (req, res) => {
+  try {
+    const { breakId } = req.params;
+    const breakRequest = await EmployeeBreak.findById(breakId);
+
+    if (!breakRequest) {
+      return res.status(404).json({ message: 'Break request not found' });
+    }
+
+    res.status(200).json({ status: breakRequest.status });
+  } catch (error) {
+    res.status(400).json({ message: 'Error fetching break status', error: error.message });
   }
 };
 // Delete an employee break

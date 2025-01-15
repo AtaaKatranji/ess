@@ -24,7 +24,7 @@ const employeeBreakSchema = new mongoose.Schema({
   },
   startTimeTaken: {
     type: Date,
-    required: true
+    default: null
   },
   durationTaken: {
     type: Number, // Duration in minutes

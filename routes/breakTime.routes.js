@@ -14,11 +14,13 @@ router.delete('/break-types/:id', breakTypeController.deleteBreakType);
 
 // EmployeeBreak Routes
 router.post('/employee-breaks', employeeBreakController.createEmployeeBreak);
+router.post('/employee-breaks/request-custom-break', employeeBreakController.requestCustomBreak);
 router.get('/employee-breaks', employeeBreakController.getAllEmployeeBreaks);
 router.get('/employee-breaks/:id', employeeBreakController.getEmployeeBreakById);
 router.put('/employee-breaks/:id', employeeBreakController.updateEmployeeBreak);
 router.delete('/employee-breaks/:id', employeeBreakController.deleteEmployeeBreak);
 
+router.get('/employee-breaks/get-break-status/:breakId', employeeBreakController.getBreakStatus); //get break status
 router.put('/employee-breaks/:breakId/status', employeeBreakController.updateBreakStatus); // Approve/reject break
 router.put('/employee-breaks/:breakId/track', employeeBreakController.trackBreakTime); // Track break time
 module.exports = router;
