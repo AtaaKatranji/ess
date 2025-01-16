@@ -28,7 +28,7 @@ exports.createBreakUsed = async (req, res) => {
 exports.getBreaksUsedByEmployee = async (req, res) => {
   try {
     const { employeeId } = req.params;
-    const breaksUsed = await BreakUsed.find({ employeeId }).populate('employeeId');
+    const breaksUsed = await BreakUsed.find({ employeeId });
     res.status(200).json({ data: breaksUsed });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching BreakUsed entries', error: error.message });
