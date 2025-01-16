@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const breakUesdSchema = new mongoose.Schema({
   breakId: {
-    type: String,
-    required: true,
-    unique: true // Ensure break type names are unique
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BreakType', // Reference to Shift collection
+    required: true // Ensure break type names are unique
   },
   isUsed: {
     type: Boolean, // Duration in minutes
@@ -11,7 +11,7 @@ const breakUesdSchema = new mongoose.Schema({
   },
   employeeId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'UserModel', // Reference to Shift collection
+    ref: 'user', // Reference to Shift collection
     required: true
   },
   createdAt: {
