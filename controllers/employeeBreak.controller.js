@@ -25,10 +25,14 @@ exports.requestCustomBreak = async (req, res) => {
   try {
     const { employeeId, startTime, duration, customBreakName } = req.body;
 
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const startTimeDate = new Date();
+    startTimeDate.setHours(hours, minutes, 0, 0);
+
     // Create a new custom break with status 'Pending'
     const newCustomBreak = new EmployeeBreak({
       employeeId,
-      startTime,
+      startTime: startTimeDate,
       duration,
       isCustomBreak: true,
       customBreakName,
