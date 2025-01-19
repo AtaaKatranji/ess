@@ -26,6 +26,7 @@ require('./config/db');
 const allowedOrigins = [
   'http://localhost:3000',
   'http://10.2.0.2:3000',
+  'https://ess-admin-lime.vercel.app'
   // Add production frontend URL here
 ];
 
