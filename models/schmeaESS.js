@@ -56,21 +56,21 @@ const timeOffRequestSchema = new mongoose.Schema({
 });
 
 // Define schema for Payroll and Financial Information table
-const payrollSchema = new mongoose.Schema({
-  employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
-  payDate: { type: Date, required: true },
-  salary: { type: Number, required: true },
-  taxWithholding: { type: Number },
-  benefits: { type: String },
-  pfDetails: { type: String }
-});
+// const payrollSchema = new mongoose.Schema({
+//   employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+//   payDate: { type: Date, required: true },
+//   salary: { type: Number, required: true },
+//   taxWithholding: { type: Number },
+//   benefits: { type: String },
+//   pfDetails: { type: String }
+// });
 
 // Create models based on the defined schemas
 
 const CheckInOut = mongoose.model('CheckInOut', checkInOutSchema);
 const TimeOffRequest = mongoose.model('TimeOffRequest', timeOffRequestSchema);
-const Payroll = mongoose.model('Payroll', payrollSchema);
+
 const SubTask = mongoose.model('SubTask', subTaskSchema);
 const ToDoItem = mongoose.model('ToDoItem', toDoItemSchema);
 
-module.exports = { CheckInOut, TimeOffRequest, Payroll,SubTask,ToDoItem };
+module.exports = { CheckInOut, TimeOffRequest,SubTask,ToDoItem };

@@ -37,6 +37,13 @@ exports.requestCustomBreak = async (req, res) => {
 
     await newCustomBreak.save();
 
+    // Notify admin dashboard via WebSocket
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'newRequest', request: newRequest }));
+      }
+    });
+  
     res.status(201).json({ message: 'Custom break request submitted successfully', data: newCustomBreak });
   } catch (error) {
     res.status(400).json({ message: 'Error submitting custom break request', error: error.message });
@@ -105,12 +112,17 @@ exports.updateEmployeeBreakStartTime = async (req, res) => {
 exports.getBreakStatus = async (req, res) => {
   try {
     const { breakId } = req.params;
-    const breakRequest = await EmployeeBreak.findById(breakId);
+    const updatedRequest = await EmployeeBreak.findById(breakId);
 
-    if (!breakRequest) {
+    if (!updatedRequest) {
       return res.status(404).json({ message: 'Break request not found' });
     }
+    if (updatedRequest) {
+      // Notify Flutter app (e.g., using Firebase Cloud Messaging or WebSocket)
+      notifyUser(updatedRequest.userId, updatedRequest.status);
+  
 
+    }
     res.status(200).json({ status: breakRequest.status });
   } catch (error) {
     res.status(400).json({ message: 'Error fetching break status', error: error.message });
