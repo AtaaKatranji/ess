@@ -42,7 +42,7 @@ exports.requestCustomBreak = async (req, res) => {
     await newCustomBreak.save();
 
     // Notify admin dashboard via WebSocket
-    wss.clients.forEach((client) => {
+    req.wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify({ type: 'newRequest', request: newRequest }));
       }

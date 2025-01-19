@@ -18,7 +18,11 @@ const server = http.createServer(app);
 
 // Initialize WebSocket server
 const wss = new WebSocket.Server({ server });
-
+// Middleware to attach wss to the req object
+app.use((req, res, next) => {
+  req.wss = wss; // Attach wss to the request object
+  next();
+});
 // Database connection
 require('./config/db');
 
