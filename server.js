@@ -25,6 +25,7 @@ app.use((req, res, next) => {
 });
 // Database connection
 require('./config/db');
+app.use(express.static('config'));
 
 // CORS configuration
 const allowedOrigins = [
