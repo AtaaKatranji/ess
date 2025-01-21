@@ -42,11 +42,11 @@ exports.requestCustomBreak = async (req, res) => {
     await newCustomBreak.save();
 
     // Notify admin dashboard via WebSocket
-    req.wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type: 'newRequest', request: newRequest }));
-      }
-    });
+    // req.wss.clients.forEach((client) => {
+    //   if (client.readyState === WebSocket.OPEN) {
+    //     client.send(JSON.stringify({ type: 'newRequest', request: newRequest }));
+    //   }
+    // });
   
     res.status(201).json({ message: 'Custom break request submitted successfully', data: newCustomBreak });
   } catch (error) {

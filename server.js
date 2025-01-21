@@ -14,15 +14,15 @@ require('dotenv').config();
 
 // Initialize Express app and HTTP server
 const app = express();
-const server = http.createServer(app);
+// const server = http.createServer(app);
 
-// Initialize WebSocket server
-const wss = new WebSocket.Server({ server });
-// Middleware to attach wss to the req object
-app.use((req, res, next) => {
-  req.wss = wss; // Attach wss to the request object
-  next();
-});
+// // Initialize WebSocket server
+// const wss = new WebSocket.Server({ server });
+// // Middleware to attach wss to the req object
+// app.use((req, res, next) => {
+//   req.wss = wss; // Attach wss to the request object
+//   next();
+// });
 // Database connection
 require('./config/db');
 app.use(express.static('config'));
@@ -76,19 +76,33 @@ routes.forEach((route) => {
 });
 
 // Notification endpoint
-app.post('/send-notification', async (req, res) => {
-  const { fcmToken, title, body } = req.body;
-
-  if (!fcmToken || !title || !body) {
-    return res.status(400).json({ error: 'Missing required fields.' });
-  }
+// Endpoint to send notifications
+app.post('/api/send-notification', async (req, res) => {
+  const { userId, message } = req.body;
 
   try {
-    const response = await sendNotification(fcmToken, title, body);
-    return res.status(200).json({ success: true, response });
+    const response = await beamsClient.publishToUsers([userId], {
+      apns: {
+        aps: {
+          alert: {
+            title: 'Hello!',
+            body: message,
+          },
+        },
+      },
+      fcm: {
+        notification: {
+          title: 'Hello!',
+          body: message,
+        },
+      },
+    });
+
+    console.log('Notification sent:', response);
+    res.status(200).json({ success: true, response });
   } catch (error) {
     console.error('Error sending notification:', error);
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -115,6 +129,6 @@ app.options('*', (req, res) => {
 
 // Start server
 const port = process.env.PORT || 9000;
-server.listen(port, process.env.SERVER_IP, () => {
+app.listen(port, process.env.SERVER_IP, () => {
   console.log(`Server running at http://${process.env.SERVER_IP}:${port}`);
 });
